@@ -8,12 +8,68 @@
 #define init 12
 
 #define MCP_ADDRESS(x) ((int[]){0x24, 0x26, 0x27}[x])
+#define MCP(x, y) ((int[]){0, 0, 1, 1, 2, 2}[x])
+#define MCP_PIN(x, y) (y+((x%2 == 0)*6)+2)
 
 Adafruit_MCP23X17 mcp[3];
+int buttons[3][4];
+int grid[6][6][6] = {
+  {
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+  },
+  {
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+  },
+  {
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+  },
+  {
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+  },
+  {
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+  },
+  {
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+  },
+};
 
 void mcp_pinmode();
 void hc_writeb(uint8_t b);
 void mcp_clear();
+void inputs();
+void calc();
+void outputs();
 
 void setup() {
   Wire.begin();
@@ -39,21 +95,26 @@ void setup() {
 }
 
 void loop() {
-  for (int i = 0; i < 3; i++) {
-    Serial.printf("mcp %d\n", i);
-    for (int j = 2; j < 14; j++) {
-      mcp[i].digitalWrite(j, LOW);
-      Serial.printf("mcp pin %d\n", j);
-      hc_write(HIGH);
-      delay(100);
-      for (int k = 0; k < 15; k++) {
-        hc_write(HIGH);
-        delay(100);
-      }
-      mcp[i].digitalWrite(j, HIGH);
-      delay(100);
-    }
-  }
+  inputs();
+  calc();
+  outputs();
+  //for (int i = 0; i < 3; i++) {
+    //Serial.printf("mcp %d\n", i);
+    //for (int j = 2; j < 14; j++) {
+    //  mcp[i].digitalWrite(j, LOW);
+    //  Serial.printf("mcp pin %d\n", j);
+    //  hc_write(HIGH);
+    //  delay(100);
+    //  for (int k = 0; k < 15; k++) {
+    //    hc_write(HIGH);
+    //    delay(100);
+    //  }
+    //  mcp[i].digitalWrite(j, HIGH);
+    //  delay(100);
+    //}
+    
+  //}
+  delay(20);
 }
 
 void mcp_pinmode() {
@@ -113,4 +174,56 @@ void mcp_clear() {
     mcp[i].digitalWrite(12, HIGH);
     mcp[i].digitalWrite(13, HIGH);
   }
+}
+
+void inputs() {
+  for (int i = 0; i < 3; i++) {
+    buttons[i][0] = mcp[i].digitalRead(0);
+    buttons[i][1] = mcp[i].digitalRead(1);
+    buttons[i][2] = mcp[i].digitalRead(14);
+    buttons[i][3] = mcp[i].digitalRead(15);
+  }
+  //Serial.println("inputs");
+}
+
+void calc() {
+
+}
+
+void outputs() {
+  for (int z = 0; z < 6; z++) {
+    for (int y = 0; y < 6; y++) {
+      for (int x = 0; x < 6; x++) {
+        mcp[MCP(x, y)].digitalWrite(MCP_PIN(x, y), grid[x][y][z]);
+        Serial.printf("(%d, %d, %d) mcp %d pin %d output %d\n", x, y, z, MCP(x, y), MCP_PIN(x, y), grid[x][y][z]);
+        //delay(1000);
+        for (int i = 0; i < 100; i++) {
+          hc_tick();
+          delay(2);
+        }
+      }
+    }
+    
+  }
+  //for (int i = 0; i < 3; i++) {
+  //  for (int j = 2; j < 14; j++) {
+  //
+  //    mcp[i].digitalWrite(j, grid[i][(j-2)%6][]);
+  //    hc_write(HIGH);
+  //    delay(100);
+  //    for (int k = 0; k < 15; k++) {
+  //      hc_write(HIGH);
+  //      delay(100);
+  //    }
+  //    mcp[i].digitalWrite(j, HIGH);
+  //    delay(100);
+  //  }
+  //}
+}
+
+void hc_tick() {
+  static int counter = 0;
+  if (counter > 15)
+    counter = 0;
+  hc_write(counter++ == 0? HIGH: LOW);
 }
