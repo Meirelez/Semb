@@ -16,50 +16,50 @@ int buttons[3][4];
 int grid[6][6][6] = {
   {
     { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
     { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
     { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
+  },
+  {
+    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
     { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
     { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
     { HIGH, LOW, HIGH, LOW, HIGH, LOW},
   },
   {
     { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
     { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
     { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
+  },
+  {
+    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
     { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
     { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
     { HIGH, LOW, HIGH, LOW, HIGH, LOW},
   },
   {
     { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
     { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
     { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
   },
   {
+    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
     { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
     { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-  },
-  {
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-  },
-  {
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
     { HIGH, LOW, HIGH, LOW, HIGH, LOW},
   },
 };
@@ -67,14 +67,17 @@ int grid[6][6][6] = {
 void mcp_pinmode();
 void hc_writeb(uint8_t b);
 void mcp_clear();
+
 void inputs();
 void calc();
 void outputs();
 
+void clear_grid();
+void cube();
+
 void setup() {
   Wire.begin();
   Serial.begin(9600);
-  // put your setup code here, to run once:
   
   for (int i = 0; i < 3; i++) {
     if (mcp[i].begin_I2C(MCP_ADDRESS(i)))
@@ -114,7 +117,7 @@ void loop() {
     //}
     
   //}
-  delay(20);
+  //delay(20);
 }
 
 void mcp_pinmode() {
@@ -143,20 +146,16 @@ void hc_writeb(uint8_t b) {
   for (int i = 0; i < 8; i++) {
     digitalWrite(init, b&(0x1<<i));
     digitalWrite(clk, LOW);
-    delayMicroseconds(1000);
+    delayMicroseconds(100);
     digitalWrite(clk, HIGH);
   }
 }
 
 void hc_write(int b) {
   digitalWrite(init, b);
-  //Serial.println("init high");
   digitalWrite(clk, LOW);
-  //Serial.println("clk low");
-  delayMicroseconds(1000);
-  //Serial.println("delay");
+  delayMicroseconds(10);
   digitalWrite(clk, HIGH);
-  //Serial.println("clk high");
 }
 
 void mcp_clear() {
@@ -183,11 +182,10 @@ void inputs() {
     buttons[i][2] = mcp[i].digitalRead(14);
     buttons[i][3] = mcp[i].digitalRead(15);
   }
-  //Serial.println("inputs");
 }
 
 void calc() {
-
+  cube();
 }
 
 void outputs() {
@@ -195,12 +193,13 @@ void outputs() {
     for (int y = 0; y < 6; y++) {
       for (int x = 0; x < 6; x++) {
         mcp[MCP(x, y)].digitalWrite(MCP_PIN(x, y), grid[x][y][z]);
+        hc_tick();
         Serial.printf("(%d, %d, %d) mcp %d pin %d output %d\n", x, y, z, MCP(x, y), MCP_PIN(x, y), grid[x][y][z]);
-        //delay(1000);
-        for (int i = 0; i < 100; i++) {
-          hc_tick();
-          delay(2);
-        }
+        delay(10);
+        // for (int i = 0; i < 100; i++) {
+        //   hc_tick();
+        //   delay(2);
+        // }
       }
     }
     
@@ -223,7 +222,55 @@ void outputs() {
 
 void hc_tick() {
   static int counter = 0;
-  if (counter > 15)
-    counter = 0;
-  hc_write(counter++ == 0? HIGH: LOW);
+  switch (counter) {
+    case 0:
+    case 1:
+    case 2:
+    case 4:
+      hc_write(LOW);
+    case 3:
+      hc_write(LOW);
+      counter++;
+      break;
+    case 5:
+      hc_write(HIGH);
+    default:
+      counter = 0;
+  }
+}
+
+void clear_grid() {
+  for (int x = 0; x < 6; x++)
+    for (int y = 0; y < 6; y++)
+      for (int z = 0; z < 6; z++)
+        grid[x][y][x] = LOW;
+}
+
+void cube() {
+  // blink cube edges with frequency 1Hz
+  static unsigned long last = 0;
+  static int state = LOW;
+
+  if (millis()-last < 500) { // wait 0.5s since last run
+    return;
+  }
+
+  state = state == HIGH? LOW: HIGH; // toggle edges state
+
+  if (last == 0) { // first run
+    state = LOW;
+    clear_grid();
+    last = millis();
+    return;
+  }
+
+  for (int x = 0; x < 6; x++) {
+    for (int y = 0; y < 6; y++) {
+      for (int z = 0; z < 6; z++) {
+        if (x == 0 || x == 5 || y == 0 || y == 5 || z == 0 || z == 5)
+          grid[x][y][z] = state;
+      }
+    }
+  }
+  last = millis();
 }
