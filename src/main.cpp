@@ -13,7 +13,7 @@
 
 Adafruit_MCP23X17 mcp[3];
 int buttons[3][4];
-int grid[6][6][6] = {
+volatile int grid[6][6][6] = {
   {
     { HIGH, LOW, HIGH, LOW, HIGH, LOW},
     { LOW, HIGH, LOW, HIGH, LOW, HIGH},
@@ -77,14 +77,19 @@ void cube();
 
 void setup() {
   Wire.begin();
-  Serial.begin(9600);
+  Serial.begin(115200);
   
+  bool err = false;
   for (int i = 0; i < 3; i++) {
     if (mcp[i].begin_I2C(MCP_ADDRESS(i)))
       Serial.printf("ok: mcp %d\n", i);
-    else
+    else {
+      err = true;
       Serial.printf("error: mcp %d\n", i);
+    }
   }
+  if (err)
+    for(;;);
 
   mcp_pinmode();
   pinMode(clk, OUTPUT);
@@ -99,7 +104,7 @@ void setup() {
 
 void loop() {
   inputs();
-  calc();
+  //calc();
   outputs();
   //for (int i = 0; i < 3; i++) {
     //Serial.printf("mcp %d\n", i);
@@ -154,8 +159,16 @@ void hc_writeb(uint8_t b) {
 void hc_write(int b) {
   digitalWrite(init, b);
   digitalWrite(clk, LOW);
-  delayMicroseconds(10);
+  delayMicroseconds(5);
   digitalWrite(clk, HIGH);
+  delayMicroseconds(5);
+}
+
+void hc_clock(int b) {
+  digitalWrite(init, b);
+  digitalWrite(clk, HIGH);
+  delayMicroseconds(5);
+  digitalWrite(clk, LOW);
 }
 
 void mcp_clear() {
@@ -183,26 +196,53 @@ void inputs() {
     buttons[i][3] = mcp[i].digitalRead(15);
   }
 }
-
-void calc() {
-  cube();
+void hc_tick() {
+  static int counter = 0;
+  //Serial.printf("hc counter: %d\n", counter);
+  /*delay(500);
+  switch (counter) {
+    case 0:
+    case 1:
+    case 2:
+    case 4:
+      hc_write(LOW);
+    case 3:
+      hc_write(LOW);
+      counter++;
+      break;
+    case 5:
+      hc_write(HIGH);
+    default:
+      counter = 0;
+  }*/
+  hc_write(HIGH);
+  for (int i = 0; i < 14; i++) {
+    delay(2);
+    hc_write(LOW);
+  }
 }
 
 void outputs() {
+  int b = HIGH;
   for (int z = 0; z < 6; z++) {
     for (int y = 0; y < 6; y++) {
       for (int x = 0; x < 6; x++) {
         mcp[MCP(x, y)].digitalWrite(MCP_PIN(x, y), grid[x][y][z]);
-        hc_tick();
-        Serial.printf("(%d, %d, %d) mcp %d pin %d output %d\n", x, y, z, MCP(x, y), MCP_PIN(x, y), grid[x][y][z]);
-        delay(10);
+        
+        //Serial.printf("(%d, %d, %d) mcp %d pin %d output %d\n", x, y, z, MCP(x, y), MCP_PIN(x, y), grid[x][y][z]);
+        //delay(10);
         // for (int i = 0; i < 100; i++) {
         //   hc_tick();
         //   delay(2);
         // }
       }
+      
     }
-    
+    //delay(200);
+    hc_clock(b); b = LOW;
+    delay(4);
+    hc_clock(LOW);
+    //hc_tick();
   }
   //for (int i = 0; i < 3; i++) {
   //  for (int j = 2; j < 14; j++) {
@@ -220,30 +260,11 @@ void outputs() {
   //}
 }
 
-void hc_tick() {
-  static int counter = 0;
-  switch (counter) {
-    case 0:
-    case 1:
-    case 2:
-    case 4:
-      hc_write(LOW);
-    case 3:
-      hc_write(LOW);
-      counter++;
-      break;
-    case 5:
-      hc_write(HIGH);
-    default:
-      counter = 0;
-  }
-}
-
 void clear_grid() {
   for (int x = 0; x < 6; x++)
     for (int y = 0; y < 6; y++)
       for (int z = 0; z < 6; z++)
-        grid[x][y][x] = LOW;
+        grid[x][y][z] = LOW;
 }
 
 void cube() {
@@ -267,10 +288,53 @@ void cube() {
   for (int x = 0; x < 6; x++) {
     for (int y = 0; y < 6; y++) {
       for (int z = 0; z < 6; z++) {
-        if (x == 0 || x == 5 || y == 0 || y == 5 || z == 0 || z == 5)
+        int arestas = (x == 0 || x == 5 ? 1: 0);
+        arestas += (y == 0 || y == 5 ? 1: 0);
+        arestas += (z == 0 || z == 5 ? 1: 0);
+        if (arestas > 1) {
+          //Serial.printf("(%d, %d, %d) cube: %d\n", x, y, z, state);
           grid[x][y][z] = state;
+        }
+        /*if (x == 0 || x == 5 || y == 0 || y == 5 || z == 0 || z == 5) {
+          Serial.printf("(%d, %d, %d) cube: %d\n", x, y, z, state);
+          grid[x][y][z] = state;
+        }
+        if (x == 0 || x == 5 || y == 0 || y == 5 || z == 0 || z == 5) {
+          Serial.printf("(%d, %d, %d) cube: %d\n", x, y, z, state);
+          grid[x][y][z] = state;
+        }*/
       }
     }
   }
   last = millis();
+}
+void ligarArestas() {
+  int N=6;
+    // Ativar as arestas no eixo X
+    for (int y = 0; y < N; y++) {
+        for (int z = 0; z < N; z=z+5) {
+            grid[0][y][z] = HIGH;  // Aresta 1: x=0, variando y e z
+            grid[N-1][y][z] = HIGH;  // Aresta 2: x=5, variando y e z
+        }
+    }
+
+    // Ativar as arestas no eixo Y
+    for (int x = 0; x < N; x++) {
+        for (int z = 0; z < N; z=z+5) {
+            grid[x][0][z] = HIGH;  // Aresta 3: y=0, variando x e z
+            grid[x][N-1][z] = HIGH;  // Aresta 4: y=5, variando x e z
+        }
+    }
+
+    // Ativar as arestas no eixo Z
+    for (int x = 0; x < N; x++) {
+        for (int y = 0; y < N; y=y+5) {
+            grid[x][y][0] = HIGH;  // Aresta 5: z=0, variando x e y
+            grid[x][y][N-1] = HIGH;  // Aresta 6: z=5, variando x e y
+        }
+    }
+}
+void calc() {
+  //cube();
+  //ligarArestas();
 }
