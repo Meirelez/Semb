@@ -74,7 +74,7 @@ void outputs();
 
 void clear_grid();
 void cube();
-
+void rain();
 void setup() {
   Wire.begin();
   Serial.begin(115200);
@@ -104,7 +104,7 @@ void setup() {
 
 void loop() {
   inputs();
-  //calc();
+  calc();
   outputs();
   //for (int i = 0; i < 3; i++) {
     //Serial.printf("mcp %d\n", i);
@@ -224,11 +224,15 @@ void hc_tick() {
 
 void outputs() {
   int b = HIGH;
+  uint16_t m[3] = {0};
   for (int z = 0; z < 6; z++) {
+    m[0] = m[1] = m[2] = 0;
     for (int y = 0; y < 6; y++) {
       for (int x = 0; x < 6; x++) {
-        mcp[MCP(x, y)].digitalWrite(MCP_PIN(x, y), grid[x][y][z]);
-        
+        m[MCP(x, y)] |= ((grid[x][y][z]&0x1) << MCP_PIN(x, y));
+        //mcp[MCP(x, y)].digitalWrite(MCP_PIN(x, y), !grid[x][y][z]);
+        //Serial.printf("(%d, %d, %d) mcp %d pin %d output %d, u16: %x\n", x, y, z, MCP(x, y), MCP_PIN(x, y), grid[x][y][z], m[MCP(x, y)]);
+        //delay(100);
         //Serial.printf("(%d, %d, %d) mcp %d pin %d output %d\n", x, y, z, MCP(x, y), MCP_PIN(x, y), grid[x][y][z]);
         //delay(10);
         // for (int i = 0; i < 100; i++) {
@@ -238,9 +242,13 @@ void outputs() {
       }
       
     }
+    
+    for (int i = 0; i < 3; i++)
+      mcp[i].writeGPIOAB(~m[i]);
+
     //delay(200);
     hc_clock(b); b = LOW;
-    delay(4);
+    delay(1);
     hc_clock(LOW);
     //hc_tick();
   }
@@ -295,14 +303,7 @@ void cube() {
           //Serial.printf("(%d, %d, %d) cube: %d\n", x, y, z, state);
           grid[x][y][z] = state;
         }
-        /*if (x == 0 || x == 5 || y == 0 || y == 5 || z == 0 || z == 5) {
-          Serial.printf("(%d, %d, %d) cube: %d\n", x, y, z, state);
-          grid[x][y][z] = state;
-        }
-        if (x == 0 || x == 5 || y == 0 || y == 5 || z == 0 || z == 5) {
-          Serial.printf("(%d, %d, %d) cube: %d\n", x, y, z, state);
-          grid[x][y][z] = state;
-        }*/
+        
       }
     }
   }
@@ -334,7 +335,48 @@ void ligarArestas() {
         }
     }
 }
+void rain(){
+  static unsigned long last = 0;
+  static int state = LOW;
+
+  if (millis()-last < 200) { // wait 0.5s since last run
+    return;
+
+  }
+   if (last == 0) { // first run
+    clear_grid();
+    for(int x=0;x<6;x++){
+      for(int y=0;y<6;y++){
+          grid[x][y][5]=HIGH;//1 camada toda ligada
+      }
+    }
+    last = millis();
+    return;
+  }
+  static int z = 4;
+    for(int x=0;x<6;x++){
+      for(int y=0;y<6;y++){
+          if(z==4){
+            grid[x][y][4]=rand()%2;
+            grid[x][y][0]=LOW;
+
+          }
+            else{
+             grid[x][y][z]=grid[x][y][z+1];
+             grid[x][y][z+1]=LOW;
+          
+            }
+          
+
+      }
+    }
+    z--;
+   if(z<0)
+   z=4;
+    last = millis();
+}
 void calc() {
   //cube();
   //ligarArestas();
+  rain();
 }
