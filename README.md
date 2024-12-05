@@ -3,3 +3,4 @@ ESP8266 Pintout
 
 MCP23017 
 ![image](https://github.com/user-attachments/assets/5db1da11-63ca-42fc-9e34-44f347787df2)
+
