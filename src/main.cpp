@@ -198,76 +198,22 @@ void inputs() {
   }
 }
 
-void hc_tick() {
-  static int counter = 0;
-  //Serial.printf("hc counter: %d\n", counter);
-  /*delay(500);
-  switch (counter) {
-    case 0:
-    case 1:
-    case 2:
-    case 4:
-      hc_write(LOW);
-    case 3:
-      hc_write(LOW);
-      counter++;
-      break;
-    case 5:
-      hc_write(HIGH);
-    default:
-      counter = 0;
-  }*/
-  hc_write(HIGH);
-  for (int i = 0; i < 14; i++) {
-    delay(2);
-    hc_write(LOW);
-  }
-}
-
 void outputs() {
-  int b = HIGH;
   uint16_t m[3] = {0};
   for (int z = 0; z < 6; z++) {
     m[0] = m[1] = m[2] = 0;
     for (int y = 0; y < 6; y++) {
       for (int x = 0; x < 6; x++) {
         m[MCP(x, y)] |= ((grid[x][y][z] & 0x1) << MCP_PIN(x, y));
-        //mcp[MCP(x, y)].digitalWrite(MCP_PIN(x, y), !grid[x][y][z]);
-        //Serial.printf("(%d, %d, %d) mcp %d pin %d output %d, u16: %x\n", x, y, z, MCP(x, y), MCP_PIN(x, y), grid[x][y][z], m[MCP(x, y)]);
-        //delay(100);
-        //Serial.printf("(%d, %d, %d) mcp %d pin %d output %d\n", x, y, z, MCP(x, y), MCP_PIN(x, y), grid[x][y][z]);
-        //delay(10);
-        // for (int i = 0; i < 100; i++) {
-        //   hc_tick();
-        //   delay(2);
-        // }
       }
     }
-
+    delay(1);
+    hc_clock(LOW);
     for (int i = 0; i < 3; i++)
       mcp[i].writeGPIOAB(~m[i]);
 
-    //delay(200);
-    hc_clock(b);
-    b = LOW;
-    delay(1);
-    hc_clock(LOW);
-    //hc_tick();
+    hc_clock(z != 0 ? LOW: HIGH);
   }
-  //for (int i = 0; i < 3; i++) {
-  //  for (int j = 2; j < 14; j++) {
-  //
-  //    mcp[i].digitalWrite(j, grid[i][(j-2)%6][]);
-  //    hc_write(HIGH);
-  //    delay(100);
-  //    for (int k = 0; k < 15; k++) {
-  //      hc_write(HIGH);
-  //      delay(100);
-  //    }
-  //    mcp[i].digitalWrite(j, HIGH);
-  //    delay(100);
-  //  }
-  //}
 }
 
 void clear_grid() {
@@ -278,11 +224,11 @@ void clear_grid() {
 }
 
 void cube() {
-  // blink cube edges with frequency 1Hz
   static unsigned long last = 0;
   static int size = 0;
+  static int d = 1;
 
-  if (millis() - last < 200) { // wait 0.2s since last run
+  if (millis() - last < 100) { // wait 0.1s since last run
     return;
   }
 
@@ -292,8 +238,9 @@ void cube() {
     return;
   }
 
-  size++;
-  if (size > 3) size = 0;
+  size += d*1;
+  if (size == 3) d = -1;
+  if (size == 0) d = 1;
 
   for (int x = 0; x < 6; x++) {
     for (int y = 0; y < 6; y++) {
@@ -301,6 +248,10 @@ void cube() {
         int arestas = (x == (3-size) || x == (size+2)) ? 1 : 0;
         arestas += (y == (3-size) || y == (size+2)) ? 1 : 0;
         arestas += (z == (3-size) || z == (size+2)) ? 1 : 0;
+        
+        if (x < (3-size) || x > (size+2)) arestas = 0;
+        if (y < (3-size) || y > (size+2)) arestas = 0;
+        if (z < (3-size) || z > (size+2)) arestas = 0;
 
         grid[x][y][z] = size > 0 ? (arestas > 1 ? HIGH : LOW) : LOW;
       }
