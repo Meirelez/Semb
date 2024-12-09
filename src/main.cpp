@@ -280,34 +280,33 @@ void clear_grid() {
 void cube() {
   // blink cube edges with frequency 1Hz
   static unsigned long last = 0;
-  static int state = LOW;
+  static int size = 0;
 
-  if (millis() - last < 500) { // wait 0.5s since last run
+  if (millis() - last < 200) { // wait 0.2s since last run
     return;
   }
 
-  state = state == HIGH ? LOW : HIGH; // toggle edges state
-
   if (last == 0) { // first run
-    state = LOW;
     clear_grid();
     last = millis();
     return;
   }
 
+  size++;
+  if (size > 3) size = 0;
+
   for (int x = 0; x < 6; x++) {
     for (int y = 0; y < 6; y++) {
       for (int z = 0; z < 6; z++) {
-        int arestas = (x == 0 || x == 5 ? 1 : 0);
-        arestas += (y == 0 || y == 5 ? 1 : 0);
-        arestas += (z == 0 || z == 5 ? 1 : 0);
-        if (arestas > 1) {
-          //Serial.printf("(%d, %d, %d) cube: %d\n", x, y, z, state);
-          grid[x][y][z] = state;
-        }
+        int arestas = (x == (3-size) || x == (size+2)) ? 1 : 0;
+        arestas += (y == (3-size) || y == (size+2)) ? 1 : 0;
+        arestas += (z == (3-size) || z == (size+2)) ? 1 : 0;
+
+        grid[x][y][z] = size > 0 ? (arestas > 1 ? HIGH : LOW) : LOW;
       }
     }
   }
+
   last = millis();
 }
 
