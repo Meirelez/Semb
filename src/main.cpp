@@ -199,7 +199,7 @@ void inputs() {
 }
 
 void hc_tick() {
-  static int counter = 0;
+  //static int counter = 0;
   //Serial.printf("hc counter: %d\n", counter);
   /*delay(500);
   switch (counter) {
@@ -250,7 +250,7 @@ void outputs() {
     //delay(200);
     hc_clock(b);
     b = LOW;
-    delay(1);
+    delay(2);
     hc_clock(LOW);
     //hc_tick();
   }
@@ -358,7 +358,7 @@ void rain() {
   for (int x = 0; x < 6; x++)
     for (int y = 0; y < 6; y++)
       for (int z = 0; z < 5; z++)
-        grid[x][y][z] = z != 4 ? grid[x][y][z + 1] : rand() % 100 < 35; // 35% probability of turning on
+        grid[x][y][z] = z != 4 ? grid[x][y][z + 1] : rand() % 100 < 20; // 20% probability of turning on
 
   last = millis();
 }
