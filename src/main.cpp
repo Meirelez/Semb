@@ -9,59 +9,59 @@
 
 #define MCP_ADDRESS(x) ((int[]){0x24, 0x26, 0x27}[x])
 #define MCP(x, y) ((int[]){0, 0, 1, 1, 2, 2}[x])
-#define MCP_PIN(x, y) (y+((x%2 == 0)*6)+2)
+#define MCP_PIN(x, y) (y + ((x % 2 == 0) * 6) + 2)
 
 Adafruit_MCP23X17 mcp[3];
 int buttons[3][4];
 volatile int grid[6][6][6] = {
-  {
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
-  },
-  {
-    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-  },
-  {
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
-  },
-  {
-    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-  },
-  {
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
-  },
-  {
-    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    { LOW, HIGH, LOW, HIGH, LOW, HIGH},
-    { HIGH, LOW, HIGH, LOW, HIGH, LOW},
-  },
+    {
+        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
+        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
+        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
+        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
+        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
+        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
+    },
+    {
+        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
+        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
+        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
+        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
+        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
+        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    },
+    {
+        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
+        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
+        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
+        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
+        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
+        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
+    },
+    {
+        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
+        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
+        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
+        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
+        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
+        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    },
+    {
+        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
+        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
+        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
+        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
+        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
+        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
+    },
+    {
+        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
+        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
+        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
+        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
+        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
+        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
+    },
 };
 
 void mcp_pinmode();
@@ -75,10 +75,11 @@ void outputs();
 void clear_grid();
 void cube();
 void rain();
+
 void setup() {
   Wire.begin();
   Serial.begin(115200);
-  
+
   bool err = false;
   for (int i = 0; i < 3; i++) {
     if (mcp[i].begin_I2C(MCP_ADDRESS(i)))
@@ -89,7 +90,7 @@ void setup() {
     }
   }
   if (err)
-    for(;;);
+    for (;;);
 
   mcp_pinmode();
   pinMode(clk, OUTPUT);
@@ -107,20 +108,20 @@ void loop() {
   calc();
   outputs();
   //for (int i = 0; i < 3; i++) {
-    //Serial.printf("mcp %d\n", i);
-    //for (int j = 2; j < 14; j++) {
-    //  mcp[i].digitalWrite(j, LOW);
-    //  Serial.printf("mcp pin %d\n", j);
-    //  hc_write(HIGH);
-    //  delay(100);
-    //  for (int k = 0; k < 15; k++) {
-    //    hc_write(HIGH);
-    //    delay(100);
-    //  }
-    //  mcp[i].digitalWrite(j, HIGH);
-    //  delay(100);
-    //}
-    
+  //Serial.printf("mcp %d\n", i);
+  //for (int j = 2; j < 14; j++) {
+  //  mcp[i].digitalWrite(j, LOW);
+  //  Serial.printf("mcp pin %d\n", j);
+  //  hc_write(HIGH);
+  //  delay(100);
+  //  for (int k = 0; k < 15; k++) {
+  //    hc_write(HIGH);
+  //    delay(100);
+  //  }
+  //  mcp[i].digitalWrite(j, HIGH);
+  //  delay(100);
+  //}
+
   //}
   //delay(20);
 }
@@ -149,7 +150,7 @@ void mcp_pinmode() {
 
 void hc_writeb(uint8_t b) {
   for (int i = 0; i < 8; i++) {
-    digitalWrite(init, b&(0x1<<i));
+    digitalWrite(init, b & (0x1 << i));
     digitalWrite(clk, LOW);
     delayMicroseconds(100);
     digitalWrite(clk, HIGH);
@@ -196,6 +197,7 @@ void inputs() {
     buttons[i][3] = mcp[i].digitalRead(15);
   }
 }
+
 void hc_tick() {
   static int counter = 0;
   //Serial.printf("hc counter: %d\n", counter);
@@ -229,7 +231,7 @@ void outputs() {
     m[0] = m[1] = m[2] = 0;
     for (int y = 0; y < 6; y++) {
       for (int x = 0; x < 6; x++) {
-        m[MCP(x, y)] |= ((grid[x][y][z]&0x1) << MCP_PIN(x, y));
+        m[MCP(x, y)] |= ((grid[x][y][z] & 0x1) << MCP_PIN(x, y));
         //mcp[MCP(x, y)].digitalWrite(MCP_PIN(x, y), !grid[x][y][z]);
         //Serial.printf("(%d, %d, %d) mcp %d pin %d output %d, u16: %x\n", x, y, z, MCP(x, y), MCP_PIN(x, y), grid[x][y][z], m[MCP(x, y)]);
         //delay(100);
@@ -240,14 +242,14 @@ void outputs() {
         //   delay(2);
         // }
       }
-      
     }
-    
+
     for (int i = 0; i < 3; i++)
       mcp[i].writeGPIOAB(~m[i]);
 
     //delay(200);
-    hc_clock(b); b = LOW;
+    hc_clock(b);
+    b = LOW;
     delay(1);
     hc_clock(LOW);
     //hc_tick();
@@ -280,11 +282,11 @@ void cube() {
   static unsigned long last = 0;
   static int state = LOW;
 
-  if (millis()-last < 500) { // wait 0.5s since last run
+  if (millis() - last < 500) { // wait 0.5s since last run
     return;
   }
 
-  state = state == HIGH? LOW: HIGH; // toggle edges state
+  state = state == HIGH ? LOW : HIGH; // toggle edges state
 
   if (last == 0) { // first run
     state = LOW;
@@ -296,85 +298,82 @@ void cube() {
   for (int x = 0; x < 6; x++) {
     for (int y = 0; y < 6; y++) {
       for (int z = 0; z < 6; z++) {
-        int arestas = (x == 0 || x == 5 ? 1: 0);
-        arestas += (y == 0 || y == 5 ? 1: 0);
-        arestas += (z == 0 || z == 5 ? 1: 0);
+        int arestas = (x == 0 || x == 5 ? 1 : 0);
+        arestas += (y == 0 || y == 5 ? 1 : 0);
+        arestas += (z == 0 || z == 5 ? 1 : 0);
         if (arestas > 1) {
           //Serial.printf("(%d, %d, %d) cube: %d\n", x, y, z, state);
           grid[x][y][z] = state;
         }
-        
       }
     }
   }
   last = millis();
 }
+
 void ligarArestas() {
-  int N=6;
-    // Ativar as arestas no eixo X
-    for (int y = 0; y < N; y++) {
-        for (int z = 0; z < N; z=z+5) {
-            grid[0][y][z] = HIGH;  // Aresta 1: x=0, variando y e z
-            grid[N-1][y][z] = HIGH;  // Aresta 2: x=5, variando y e z
-        }
+  int N = 6;
+  // Ativar as arestas no eixo X
+  for (int y = 0; y < N; y++) {
+    for (int z = 0; z < N; z = z + 5) {
+      grid[0][y][z] = HIGH;     // Aresta 1: x=0, variando y e z
+      grid[N - 1][y][z] = HIGH; // Aresta 2: x=5, variando y e z
     }
+  }
 
-    // Ativar as arestas no eixo Y
-    for (int x = 0; x < N; x++) {
-        for (int z = 0; z < N; z=z+5) {
-            grid[x][0][z] = HIGH;  // Aresta 3: y=0, variando x e z
-            grid[x][N-1][z] = HIGH;  // Aresta 4: y=5, variando x e z
-        }
+  // Ativar as arestas no eixo Y
+  for (int x = 0; x < N; x++) {
+    for (int z = 0; z < N; z = z + 5) {
+      grid[x][0][z] = HIGH;     // Aresta 3: y=0, variando x e z
+      grid[x][N - 1][z] = HIGH; // Aresta 4: y=5, variando x e z
     }
+  }
 
-    // Ativar as arestas no eixo Z
-    for (int x = 0; x < N; x++) {
-        for (int y = 0; y < N; y=y+5) {
-            grid[x][y][0] = HIGH;  // Aresta 5: z=0, variando x e y
-            grid[x][y][N-1] = HIGH;  // Aresta 6: z=5, variando x e y
-        }
+  // Ativar as arestas no eixo Z
+  for (int x = 0; x < N; x++) {
+    for (int y = 0; y < N; y = y + 5) {
+      grid[x][y][0] = HIGH;     // Aresta 5: z=0, variando x e y
+      grid[x][y][N - 1] = HIGH; // Aresta 6: z=5, variando x e y
     }
+  }
 }
-void rain(){
+
+void rain() {
   static unsigned long last = 0;
   static int state = LOW;
 
-  if (millis()-last < 200) { // wait 0.5s since last run
+  if (millis() - last < 200) { // wait 0.5s since last run
     return;
-
   }
-   if (last == 0) { // first run
+  if (last == 0) { // first run
     clear_grid();
-    for(int x=0;x<6;x++){
-      for(int y=0;y<6;y++){
-          grid[x][y][5]=HIGH;//1 camada toda ligada
+    for (int x = 0; x < 6; x++) {
+      for (int y = 0; y < 6; y++) {
+        grid[x][y][5] = HIGH; //1 camada toda ligada
       }
     }
     last = millis();
     return;
   }
   static int z = 4;
-    for(int x=0;x<6;x++){
-      for(int y=0;y<6;y++){
-          if(z==4){
-            grid[x][y][4]=rand()%2;
-            grid[x][y][0]=LOW;
-
-          }
-            else{
-             grid[x][y][z]=grid[x][y][z+1];
-             grid[x][y][z+1]=LOW;
-          
-            }
-          
-
+  for (int x = 0; x < 6; x++) {
+    for (int y = 0; y < 6; y++) {
+      if (z == 4) {
+        grid[x][y][4] = rand() % 2;
+        grid[x][y][0] = LOW;
+      }
+      else {
+        grid[x][y][z] = grid[x][y][z + 1];
+        grid[x][y][z + 1] = LOW;
       }
     }
-    z--;
-   if(z<0)
-   z=4;
-    last = millis();
+  }
+  z--;
+  if (z < 0)
+    z = 4;
+  last = millis();
 }
+
 void calc() {
   //cube();
   //ligarArestas();
