@@ -290,42 +290,31 @@ void ligarArestas() {
 
 void rain() {
   static unsigned long last = 0;
-  static int state = LOW;
 
-  if (millis() - last < 200) { // wait 0.5s since last run
+  if (millis() - last < 200) { // wait 0.2s since last run
     return;
   }
+
   if (last == 0) { // first run
     clear_grid();
     for (int x = 0; x < 6; x++) {
       for (int y = 0; y < 6; y++) {
-        grid[x][y][5] = HIGH; //1 camada toda ligada
+        grid[x][y][5] = HIGH; // 1 camada sempre ligada
       }
     }
     last = millis();
     return;
   }
-  static int z = 4;
-  for (int x = 0; x < 6; x++) {
-    for (int y = 0; y < 6; y++) {
-      if (z == 4) {
-        grid[x][y][4] = rand() % 2;
-        grid[x][y][0] = LOW;
-      }
-      else {
-        grid[x][y][z] = grid[x][y][z + 1];
-        grid[x][y][z + 1] = LOW;
-      }
-    }
-  }
-  z--;
-  if (z < 0)
-    z = 4;
+
+  for (int x = 0; x < 6; x++)
+    for (int y = 0; y < 6; y++)
+      for (int z = 0; z < 5; z++)
+        grid[x][y][z] = z != 4 ? grid[x][y][z + 1] : rand() % 100 < 20; // 20% probability of turning on
+
   last = millis();
 }
 
 void calc() {
   //cube();
-  //ligarArestas();
   rain();
 }
