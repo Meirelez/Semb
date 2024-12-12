@@ -15,56 +15,7 @@
 
 Adafruit_MCP23X17 mcp[3];
 int buttons[3][4];
-volatile int grid[6][6][6] = {
-    {
-        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
-        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
-        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
-        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
-        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
-        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
-    },
-    {
-        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
-        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
-        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
-        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
-        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
-        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    },
-    {
-        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
-        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
-        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
-        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
-        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
-        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
-    },
-    {
-        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
-        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
-        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
-        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
-        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
-        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    },
-    {
-        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
-        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
-        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
-        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
-        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
-        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
-    },
-    {
-        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
-        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
-        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
-        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
-        {LOW, HIGH, LOW, HIGH, LOW, HIGH},
-        {HIGH, LOW, HIGH, LOW, HIGH, LOW},
-    },
-};
+volatile int grid[6][6][6] = {0};
 
 void mcp_pinmode();
 void hc_writeb(uint8_t b);
@@ -76,6 +27,7 @@ void outputs();
 
 void setup() {
   Wire.begin();
+  Wire.setClock(400000);
   Serial.begin(115200);
 
   bool err = false;
@@ -188,7 +140,7 @@ void outputs() {
         m[MCP(x, y)] |= ((grid[x][y][z] & 0x1) << MCP_PIN(x, y));
       }
     }
-    delay(1);
+    delayMicroseconds(500);
     hc_clock(LOW);
     for (int i = 0; i < 3; i++)
       mcp[i].writeGPIOAB(~m[i]);
