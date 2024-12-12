@@ -1,6 +1,7 @@
 #include <Arduino.h>
-#include <Wire.h>
 #include <Adafruit_MCP23X17.h>
+
+#include "animations.h"
 
 #define scl 5
 #define sda 4
@@ -8,24 +9,37 @@
 #define init 12
 
 #define MCP_ADDRESS(x) ((int[]){0x24, 0x26, 0x27}[x])
+#define MCP(x, y) ((int[]){0, 0, 1, 1, 2, 2}[x])
+#define MCP_PIN(x, y) (y + ((x % 2 == 0) * 6) + 2)
 
 Adafruit_MCP23X17 mcp[3];
+int buttons[3][4];
+volatile int grid[6][6][6] = {0};
 
 void mcp_pinmode();
 void hc_writeb(uint8_t b);
 void mcp_clear();
 
+void inputs();
+void calc();
+void outputs();
+
 void setup() {
   Wire.begin();
-  Serial.begin(9600);
-  // put your setup code here, to run once:
-  
+  Wire.setClock(400000);
+  Serial.begin(115200);
+
+  bool err = false;
   for (int i = 0; i < 3; i++) {
     if (mcp[i].begin_I2C(MCP_ADDRESS(i)))
       Serial.printf("ok: mcp %d\n", i);
-    else
+    else {
+      err = true;
       Serial.printf("error: mcp %d\n", i);
+    }
   }
+  if (err)
+    for (;;);
 
   mcp_pinmode();
   pinMode(clk, OUTPUT);
@@ -39,21 +53,9 @@ void setup() {
 }
 
 void loop() {
-  for (int i = 0; i < 3; i++) {
-    Serial.printf("mcp %d\n", i);
-    for (int j = 2; j < 14; j++) {
-      mcp[i].digitalWrite(j, LOW);
-      Serial.printf("mcp pin %d\n", j);
-      hc_write(HIGH);
-      delay(100);
-      for (int k = 0; k < 15; k++) {
-        hc_write(HIGH);
-        delay(100);
-      }
-      mcp[i].digitalWrite(j, HIGH);
-      delay(100);
-    }
-  }
+  xTaskCreate(inputs, "Inputs", 10000, NULL, 1, NULL);  
+  xTaskCreate(outputs, "Outputs", 10000, NULL, 2, NULL);  
+  xTaskCreate(calc, "Calc", 10000, NULL, 3, NULL);  
 }
 
 void mcp_pinmode() {
@@ -80,22 +82,26 @@ void mcp_pinmode() {
 
 void hc_writeb(uint8_t b) {
   for (int i = 0; i < 8; i++) {
-    digitalWrite(init, b&(0x1<<i));
+    digitalWrite(init, b & (0x1 << i));
     digitalWrite(clk, LOW);
-    delayMicroseconds(1000);
+    delayMicroseconds(100);
     digitalWrite(clk, HIGH);
   }
 }
 
 void hc_write(int b) {
   digitalWrite(init, b);
-  //Serial.println("init high");
   digitalWrite(clk, LOW);
-  //Serial.println("clk low");
-  delayMicroseconds(1000);
-  //Serial.println("delay");
+  delayMicroseconds(5);
   digitalWrite(clk, HIGH);
-  //Serial.println("clk high");
+  delayMicroseconds(5);
+}
+
+void hc_clock(int b) {
+  digitalWrite(init, b);
+  digitalWrite(clk, HIGH);
+  delayMicroseconds(5);
+  digitalWrite(clk, LOW);
 }
 
 void mcp_clear() {
@@ -113,4 +119,57 @@ void mcp_clear() {
     mcp[i].digitalWrite(12, HIGH);
     mcp[i].digitalWrite(13, HIGH);
   }
+}
+
+void inputs() {
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+  const TickType_t xFrequency = pdMS_TO_TICKS(50);
+  BaseType_t xWasDelayed;
+
+  for(;;) {
+    for (int i = 0; i < 3; i++) {
+      uint16_t b = mcp[i].readGPIOAB();
+      buttons[i][0] = b & (0x01 << 0);
+      buttons[i][1] = b & (0x01 << 1);
+      buttons[i][2] = b & (0x01 << 14);
+      buttons[i][3] = b & (0x01 << 15);
+    }
+    xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
+  }
+}
+
+void outputs() {
+  uint16_t m[3] = {0};
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+  const TickType_t xFrequency = pdMS_TO_TICKS(1);
+  BaseType_t xWasDelayed;
+
+  for (;;) {
+    for (int z = 0; z < 6; z++) {
+      m[0] = m[1] = m[2] = 0;
+      for (int y = 0; y < 6; y++) {
+        for (int x = 0; x < 6; x++) {
+          m[MCP(x, y)] |= ((grid[x][y][z] & 0x1) << MCP_PIN(x, y));
+        }
+      }
+      xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
+      hc_clock(LOW);
+      for (int i = 0; i < 3; i++)
+        mcp[i].writeGPIOAB(~m[i]);
+
+      hc_clock(z != 0 ? LOW: HIGH);
+    }    
+  }
+}
+
+void clear_grid() {
+  for (int x = 0; x < 6; x++)
+    for (int y = 0; y < 6; y++)
+      for (int z = 0; z < 6; z++)
+        grid[x][y][z] = LOW;
+}
+
+void calc() {
+  cube();
+  //rain();
 }
