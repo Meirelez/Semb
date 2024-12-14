@@ -46,9 +46,9 @@ void grid_setX(int n, int v) {
 
 void grid_setY(int n, int v) {
     for (int z = 0; z < GRID_SIZE; z++)
-        grid[z * GRID_SIZE + n] = v != 0 ? ~0 : 0;
+        grid[z * GRID_SIZE + n] = v != 0 ? (1<<GRID_SIZE)-1 : 0;
 }
 
 void grid_setZ(int n, int v) {
-    memset((void*)&grid[n * GRID_SIZE], v != 0 ? ~0 : 0, GRID_SIZE);
+    memset((void*)&grid[n * GRID_SIZE], v != 0 ? (1<<GRID_SIZE)-1 : 0, GRID_SIZE);
 }
