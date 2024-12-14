@@ -54,7 +54,7 @@ void rain() {
         for (int x = 0; x < 6; x++)
             for (int y = 0; y < 6; y++)
                 for (int z = 0; z < 5; z++)
-                    grid_set(x, y, z, z != 4 ? grid_get(x, y, z+1) : rand() % 100 < 10);  // 10% probability of turning on
+                    grid_set(x, y, z, z != 4 ? grid_get(x, y, z + 1) : rand() % 100 < 10);  // 10% probability of turning on
 
         xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
@@ -68,11 +68,11 @@ void initial() {
 	grid_clear();
 
 	for (int n = 0; n < 3; n++) {
-		auto f = (void(*[])(int, int)){grid_setX, grid_setY, grid_setZ}[n];
+        auto f = (void (*[])(int, int)){grid_setX, grid_setY, grid_setZ}[n];
 		f(0, HIGH);
 		delay(500);
 		for (int m = 1; m < 6; m++) {
-			f(m-1, LOW);
+            f(m - 1, LOW);
 			f(m, HIGH);
 			delay(500);
 		}
