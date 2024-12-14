@@ -2,6 +2,7 @@
 #include <Arduino.h>
 
 #include "animations.h"
+#include "grid.h"
 
 #define scl 5
 #define sda 4
@@ -14,7 +15,6 @@
 
 Adafruit_MCP23X17 mcp[3];
 int buttons[3][4];
-volatile int grid[6][6][6] = {0};
 
 void mcp_pinmode();
 void hc_writeb(uint8_t b);
@@ -147,12 +147,9 @@ void outputs(void *args) {
 
     for (;;) {
         for (int z = 0; z < 6; z++) {
-            m[0] = m[1] = m[2] = 0;
-            for (int y = 0; y < 6; y++) {
-                for (int x = 0; x < 6; x++) {
-                    m[MCP(x, y)] |= ((grid[x][y][z] & 0x1) << MCP_PIN(x, y));
-                }
-            }
+            m[0] = grid_getZY(z, 0) << 8 | grid_getZY(z, 1);
+            m[1] = grid_getZY(z, 2) << 8 | grid_getZY(z, 3);
+            m[2] = grid_getZY(z, 4) << 8 | grid_getZY(z, 5);
             xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
             hc_clock(LOW);
             for (int i = 0; i < 3; i++)
@@ -163,14 +160,9 @@ void outputs(void *args) {
     }
 }
 
-void clear_grid() {
-    for (int x = 0; x < 6; x++)
-        for (int y = 0; y < 6; y++)
-            for (int z = 0; z < 6; z++)
-                grid[x][y][z] = LOW;
-}
-
 void calc(void *args) {
+    initial();
+    delay(2000);
     cube();
     //rain();
 }
