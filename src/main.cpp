@@ -20,9 +20,9 @@ void mcp_pinmode();
 void hc_writeb(uint8_t b);
 void mcp_clear();
 
-void inputs();
-void calc();
-void outputs();
+void inputs(void *);
+void calc(void *);
+void outputs(void *);
 
 void setup() {
   Wire.begin();
@@ -53,9 +53,9 @@ void setup() {
 }
 
 void loop() {
-  xTaskCreate(inputs, "Inputs", 10000, NULL, 1, NULL);  
-  xTaskCreate(outputs, "Outputs", 10000, NULL, 2, NULL);  
-  xTaskCreate(calc, "Calc", 10000, NULL, 3, NULL);  
+  xTaskCreate(inputs, "inputs", 10000, NULL, 1, NULL);  
+  xTaskCreate(outputs, "outputs", 10000, NULL, 2, NULL);  
+  xTaskCreate(calc, "calc", 10000, NULL, 3, NULL);  
 }
 
 void mcp_pinmode() {
@@ -121,7 +121,7 @@ void mcp_clear() {
   }
 }
 
-void inputs() {
+void inputs(void *args) {
   TickType_t xLastWakeTime = xTaskGetTickCount();
   const TickType_t xFrequency = pdMS_TO_TICKS(50);
   BaseType_t xWasDelayed;
@@ -138,7 +138,7 @@ void inputs() {
   }
 }
 
-void outputs() {
+void outputs(void *args) {
   uint16_t m[3] = {0};
   TickType_t xLastWakeTime = xTaskGetTickCount();
   const TickType_t xFrequency = pdMS_TO_TICKS(1);
@@ -169,7 +169,7 @@ void clear_grid() {
         grid[x][y][z] = LOW;
 }
 
-void calc() {
+void calc(void *args) {
   cube();
   //rain();
 }
