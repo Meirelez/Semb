@@ -92,34 +92,14 @@ void hc_writeb(uint8_t b) {
 
 void hc_write(int b) {
     digitalWrite(init, b);
-    digitalWrite(clk, LOW);
-    delayMicroseconds(5);
-    digitalWrite(clk, HIGH);
-    delayMicroseconds(5);
-}
-
-void hc_clock(int b) {
-    digitalWrite(init, b);
     digitalWrite(clk, HIGH);
     delayMicroseconds(5);
     digitalWrite(clk, LOW);
 }
 
 void mcp_clear() {
-    for (int i = 0; i < 3; i++) {
-        mcp[i].digitalWrite(2, HIGH);
-        mcp[i].digitalWrite(3, HIGH);
-        mcp[i].digitalWrite(4, HIGH);
-        mcp[i].digitalWrite(5, HIGH);
-        mcp[i].digitalWrite(6, HIGH);
-        mcp[i].digitalWrite(7, HIGH);
-        mcp[i].digitalWrite(8, HIGH);
-        mcp[i].digitalWrite(9, HIGH);
-        mcp[i].digitalWrite(10, HIGH);
-        mcp[i].digitalWrite(11, HIGH);
-        mcp[i].digitalWrite(12, HIGH);
-        mcp[i].digitalWrite(13, HIGH);
-    }
+    for (int i = 0; i < 3; i++)
+        mcp[i].writeGPIOAB(~0);
 }
 
 void inputs(void *args) {
@@ -146,12 +126,12 @@ void outputs(void *args) {
 
     for (;;) {
         for (int z = 0; z < 6; z++) {
-            hc_clock(LOW);
+            hc_write(LOW);
             for (int i = 0; i < 3; i++)
                 mcp[i].writeGPIOAB(~(grid_getZY(z, 2 * i) << 8 | grid_getZY(z, 2 * i + 1)));
 
             xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
-            hc_clock(z != 0 ? LOW : HIGH);
+            hc_write(z != 0 ? LOW : HIGH);
         }
     }
 }
