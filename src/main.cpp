@@ -140,21 +140,17 @@ void inputs(void *args) {
 }
 
 void outputs(void *args) {
-    uint16_t m[3] = {0};
     TickType_t xLastWakeTime = xTaskGetTickCount();
     const TickType_t xFrequency = pdMS_TO_TICKS(1);
     BaseType_t xWasDelayed;
 
     for (;;) {
         for (int z = 0; z < 6; z++) {
-            m[0] = grid_getZY(z, 0) << 8 | grid_getZY(z, 1);
-            m[1] = grid_getZY(z, 2) << 8 | grid_getZY(z, 3);
-            m[2] = grid_getZY(z, 4) << 8 | grid_getZY(z, 5);
-            xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
             hc_clock(LOW);
             for (int i = 0; i < 3; i++)
-                mcp[i].writeGPIOAB(~m[i]);
+                mcp[i].writeGPIOAB(~(grid_getZY(z, 2 * i) << 8 | grid_getZY(z, 2 * i + 1)));
 
+            xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
             hc_clock(z != 0 ? LOW : HIGH);
         }
     }
