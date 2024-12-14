@@ -76,7 +76,12 @@ void initial() {
 			f(m, HIGH);
 			delay(500);
 		}
-		f(5, LOW);
+		for (int m = 5; m > 0; m--) {
+            f(m, LOW);
+            f(m - 1, HIGH);
+            delay(500);
+        }
+        f(0, LOW);
 		delay(2000);
 	}
 
