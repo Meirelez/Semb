@@ -49,21 +49,22 @@ void rain() {
     BaseType_t xWasDelayed;
 
     clear_grid();
-    for (int x = 0; x < 6; x++) {
+    /* for (int x = 0; x < 6; x++) {
         for (int y = 0; y < 6; y++) {
-            grid[x][y][5] = HIGH;  // 1 camada sempre ligada
+            grid[x][y][5] = rand() % 100 < 50;  // 1 camada sempre ligada
         }
-    }
+    } */
 
     for (;;) {
         for (int x = 0; x < 6; x++)
             for (int y = 0; y < 6; y++)
-                for (int z = 0; z < 5; z++)
-                    grid[x][y][z] = z != 4 ? grid[x][y][z + 1] : rand() % 100 < 10;  // 20% probability of turning on
+                for (int z = 0; z < 6; z++)
+                    grid[x][y][z] = z != 5 ? grid[x][y][z + 1] : rand() % 100 < 10;  // 20% probability of turning on
 
         xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
 }
+
 void firework() {
     TickType_t xLastWakeTime = xTaskGetTickCount();
     const TickType_t xFrequency = pdMS_TO_TICKS(200);
