@@ -62,7 +62,7 @@ void rain() {
 
 void initial() {
     TickType_t xLastWakeTime = xTaskGetTickCount();
-    const TickType_t xFrequency = pdMS_TO_TICKS(200);
+    const TickType_t xFrequency = pdMS_TO_TICKS(100);
     BaseType_t xWasDelayed;
 
 	grid_clear();
@@ -70,19 +70,19 @@ void initial() {
 	for (int n = 0; n < 3; n++) {
         auto f = (void (*[])(int, int)){grid_setX, grid_setY, grid_setZ}[n];
 		f(0, HIGH);
-		delay(500);
+		delay(200);
 		for (int m = 1; m < 6; m++) {
             f(m - 1, LOW);
 			f(m, HIGH);
-			delay(500);
+			delay(200);
 		}
 		for (int m = 5; m > 0; m--) {
             f(m, LOW);
             f(m - 1, HIGH);
-            delay(500);
+            delay(200);
         }
         f(0, LOW);
-		delay(2000);
+		delay(1000);
 	}
 
 	grid_clear();
