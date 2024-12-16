@@ -6,8 +6,8 @@
 
 #define scl 5
 #define sda 4
-#define clk 14
-#define init 12
+#define clk 18
+#define init 19
 
 #define MCP_ADDRESS(x) ((int[]){0x24, 0x26, 0x27}[x])
 #define MCP(x, y) ((int[]){0, 0, 1, 1, 2, 2}[x])
@@ -51,20 +51,22 @@ void setup() {
 
     hc_writeb(0);
     hc_writeb(0);
-}
 
-void loop() {
     xTaskCreate(inputs, "inputs", 10000, NULL, 1, NULL);
     xTaskCreate(outputs, "outputs", 10000, NULL, 2, NULL);
     xTaskCreate(calc, "calc", 10000, NULL, 3, NULL);
 }
 
+void loop() {
+    
+}
+
 void mcp_pinmode() {
     for (int i = 0; i < 3; i++) {
-        mcp[i].pinMode(0, INPUT);
-        mcp[i].pinMode(1, INPUT);
-        mcp[i].pinMode(14, INPUT);
-        mcp[i].pinMode(15, INPUT);
+        mcp[i].pinMode(0, INPUT_PULLUP);
+        mcp[i].pinMode(1, INPUT_PULLUP);
+        mcp[i].pinMode(14, INPUT_PULLUP);
+        mcp[i].pinMode(15, INPUT_PULLUP);
 
         mcp[i].pinMode(2, OUTPUT);
         mcp[i].pinMode(3, OUTPUT);
@@ -110,10 +112,10 @@ void inputs(void *args) {
     for (;;) {
         for (int i = 0; i < 3; i++) {
             uint16_t b = mcp[i].readGPIOAB();
-            buttons[i][0] = b & (0x01 << 0);
-            buttons[i][1] = b & (0x01 << 1);
-            buttons[i][2] = b & (0x01 << 14);
-            buttons[i][3] = b & (0x01 << 15);
+            buttons[i][0] = (b & (0x01 << 0))>>0;
+            buttons[i][1] = (b & (0x01 << 1))>>1;
+            buttons[i][2] = (b & (0x01 << 14))>>14;
+            buttons[i][3] = (b & (0x01 << 15))>>15;
         }
         xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
@@ -127,8 +129,10 @@ void outputs(void *args) {
     for (;;) {
         for (int z = 0; z < 6; z++) {
             hc_write(LOW);
-            for (int i = 0; i < 3; i++)
-                mcp[i].writeGPIOAB(~(grid_getZY(z, 2 * i) << 8 | grid_getZY(z, 2 * i + 1)));
+            for (int i = 0; i < 3; i++) {
+                mcp[i].writeGPIOAB(~((uint16_t)grid_getZY(z, 2 * i) << 8 | (uint16_t)grid_getZY(z, 2 * i + 1)));
+                Serial.printf("mcp %d: %x\n", i, (uint16_t)grid_getZY(z, 2 * i) << 8 | (uint16_t)grid_getZY(z, 2 * i + 1));
+            }
 
             xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
             hc_write(z != 0 ? LOW : HIGH);
@@ -137,8 +141,11 @@ void outputs(void *args) {
 }
 
 void calc(void *args) {
+    Serial.println("in calc");
     initial();
+    Serial.println("delay");
     delay(2000);
+    Serial.println("cube");
     cube();
     //rain();
 }
