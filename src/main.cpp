@@ -2,6 +2,7 @@
 #include <Arduino.h>
 
 #include "animations.h"
+#include "grid.h"
 
 #define scl 5
 #define sda 4
@@ -14,7 +15,6 @@
 
 Adafruit_MCP23X17 mcp[3];
 int buttons[3][4];
-volatile int grid[6][6][6] = {0};
 
 void mcp_pinmode();
 void hc_writeb(uint8_t b);
@@ -60,6 +60,7 @@ retry:
 }
 
 void loop() {
+
 }
 
 void mcp_pinmode() {
@@ -95,34 +96,14 @@ void hc_writeb(uint8_t b) {
 
 void hc_write(int b) {
     digitalWrite(init, b);
-    digitalWrite(clk, LOW);
-    delayMicroseconds(5);
-    digitalWrite(clk, HIGH);
-    delayMicroseconds(5);
-}
-
-void hc_clock(int b) {
-    digitalWrite(init, b);
     digitalWrite(clk, HIGH);
     delayMicroseconds(5);
     digitalWrite(clk, LOW);
 }
 
 void mcp_clear() {
-    for (int i = 0; i < 3; i++) {
-        mcp[i].digitalWrite(2, HIGH);
-        mcp[i].digitalWrite(3, HIGH);
-        mcp[i].digitalWrite(4, HIGH);
-        mcp[i].digitalWrite(5, HIGH);
-        mcp[i].digitalWrite(6, HIGH);
-        mcp[i].digitalWrite(7, HIGH);
-        mcp[i].digitalWrite(8, HIGH);
-        mcp[i].digitalWrite(9, HIGH);
-        mcp[i].digitalWrite(10, HIGH);
-        mcp[i].digitalWrite(11, HIGH);
-        mcp[i].digitalWrite(12, HIGH);
-        mcp[i].digitalWrite(13, HIGH);
-    }
+    for (int i = 0; i < 3; i++)
+        mcp[i].writeGPIOAB(~0);
 }
 
 void inputs(void *args) {
@@ -143,37 +124,47 @@ void inputs(void *args) {
 }
 
 void outputs(void *args) {
-    uint16_t m[3] = {0};
     TickType_t xLastWakeTime = xTaskGetTickCount();
     const TickType_t xFrequency = pdMS_TO_TICKS(1);
     BaseType_t xWasDelayed;
 
+    /* for (;;) {
+        for (int z = 0; z < 6; z++) {
+            xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
+            hc_write(LOW);
+            for (int i = 0; i < 3; i++) {
+                mcp[i].writeGPIOAB(~((uint16_t)grid_getZY(z, 2 * i) << 8 | (uint16_t)grid_getZY(z, 2 * i + 1)));
+                //Serial.printf("mcp %d: %x\n", i, (uint16_t)grid_getZY(z, 2 * i) << 8 | (uint16_t)grid_getZY(z, 2 * i + 1));
+            }
+            hc_write(z != 0 ? LOW : HIGH);
+        }
+    } */
+
+    int m[3] = {0};
     for (;;) {
         for (int z = 0; z < 6; z++) {
             m[0] = m[1] = m[2] = 0;
             for (int y = 0; y < 6; y++) {
                 for (int x = 0; x < 6; x++) {
-                    m[MCP(x, y)] |= ((grid[x][y][z] & 0x1) << MCP_PIN(x, y));
+                    m[MCP(x, y)] |= (grid_get(x, y, z)&1) << MCP_PIN(x, y);
                 }
             }
             xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
-            hc_clock(LOW);
+            hc_write(LOW);
             for (int i = 0; i < 3; i++)
                 mcp[i].writeGPIOAB(~m[i]);
 
-            hc_clock(z != 0 ? LOW : HIGH);
+            hc_write(z != 0 ? LOW : HIGH);
         }
     }
 }
 
-void clear_grid() {
-    for (int x = 0; x < 6; x++)
-        for (int y = 0; y < 6; y++)
-            for (int z = 0; z < 6; z++)
-                grid[x][y][z] = LOW;
-}
 
 void calc(void *args) {
+  for(;;) {
+    initial();
+    delay(2000);
+  }
     //cube();
-    rain();
+    //rain();
 }

@@ -1,8 +1,7 @@
-#include "animations.h"
-
 #include <Arduino.h>
 
-extern int grid[6][6][6];
+#include "animations.h"
+#include "grid.h"
 
 void cube() {
     int size = 0;
@@ -12,7 +11,7 @@ void cube() {
     const TickType_t xFrequency = pdMS_TO_TICKS(200);
     BaseType_t xWasDelayed;
 
-    clear_grid();
+    grid_clear();
 
     for (;;) {
         size += d * 1;
@@ -35,7 +34,7 @@ void cube() {
                     if (z < (3 - size) || z > (size + 2))
                         arestas = 0;
 
-                    grid[x][y][z] = size > 0 ? (arestas > 1 ? HIGH : LOW) : LOW;
+                    grid_set(x, y, z, size > 0 ? (arestas > 1 ? HIGH : LOW) : LOW);
                 }
             }
         }
@@ -48,18 +47,14 @@ void rain() {
     const TickType_t xFrequency = pdMS_TO_TICKS(200);
     BaseType_t xWasDelayed;
 
-    clear_grid();
-    /* for (int x = 0; x < 6; x++) {
-        for (int y = 0; y < 6; y++) {
-            grid[x][y][5] = rand() % 100 < 50;  // 1 camada sempre ligada
-        }
-    } */
+    grid_clear();
+    grid_setZ(5, HIGH);
 
     for (;;) {
         for (int x = 0; x < 6; x++)
             for (int y = 0; y < 6; y++)
-                for (int z = 0; z < 6; z++)
-                    grid[x][y][z] = z != 5 ? grid[x][y][z + 1] : rand() % 100 < 10;  // 20% probability of turning on
+                for (int z = 0; z < 5; z++)
+                    grid_set(x, y, z, z != 4 ? grid_get(x, y, z + 1) : rand() % 100 < 10);  // 10% probability of turning on
 
         xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
@@ -125,6 +120,7 @@ void firework() {
         xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
 }
+
 void firework2() {
     static unsigned long last = 0;
     static int state = LOW;
@@ -144,88 +140,30 @@ void firework2() {
     }
     last = millis();
 
-    // Initial state: Set explosion center and configure trails
-    if (state == LOW) {
-        clear_grid();
-        centerX = rand() % 6;
-        centerY = rand() % 6;
-        centerZ = rand() % 6;
-
-        for (int i = 0; i < 6; i++) {           // Randomize trail lengths
-            trail_lengths[i] = rand() % 3 + 2;  // Length between 2 and 4
-        }
-
-        grid[centerX][centerY][centerZ] = HIGH;  // Central point of explosion
-        step = 1;                                // Reset step for expansion
-        state = HIGH;                            // Transition to expansion state
-        return;
-    }
-
-    // Expansion state: Create palm effect
-    if (state == HIGH) {
-        // Fade the grid slightly (older particles fade out)
-        for (int x = 0; x < 6; x++) {
-            for (int y = 0; y < 6; y++) {
-                for (int z = 0; z < 6; z++) {
-                    if (grid[x][y][z] > 0) {
-                        grid[x][y][z]--;  // Decrease brightness for fading
-                    }
-                }
-            }
-        }
-
-        // Add new particles for the current expansion step
-        for (int d = 0; d < 6; d++) {  // Loop through each trail direction
-            int dx = directions[d][0];
-            int dy = directions[d][1];
-            int dz = directions[d][2];
-
-            // Calculate particle positions along the trail
-            for (int t = 0; t <= step; t++) {
-                if (t > trail_lengths[d])
-                    break;  // Stop if trail exceeds length
-
-                int x = centerX + dx * t + (rand() % 3 - 1);  // Add slight randomness
-                int y = centerY + dy * t + (rand() % 3 - 1);
-                int z = centerZ + dz * t - (step / 3);  // Gravity effect (z drops over time)
-
-                // Ensure the position is within bounds
-                if (x >= 0 && x < 6 && y >= 0 && y < 6 && z >= 0 && z < 6) {
-                    grid[x][y][z] = 3;  // Set brightness (max value for new particles)
-                }
-            }
-        }
-
-        step++;          // Increment the expansion step
-        if (step > 4) {  // End the palm effect after a few steps
-            clear_grid();
-            state = LOW;  // Reset to initial state
-        }
-    }
-}
 void initial() {
     TickType_t xLastWakeTime = xTaskGetTickCount();
-    const TickType_t xFrequency = pdMS_TO_TICKS(200);
+    const TickType_t xFrequency = pdMS_TO_TICKS(100);
     BaseType_t xWasDelayed;
 
-    for (int j = 0; j < 2; j++) {
-        int x;
-        for (j == 0 ? x = 5 : x = 0; j == 0 ? x >= 0 : x < 5; j == 0 ? x-- : x++) {
-            for (int y = 0; y < 6; y++) {
-                for (int z = 0; z < 6; z++) {
-                    if (j == 0) {
-                        if (x == 5) {
-                            grid[x][y][z] = HIGH;
-                        }
-                        grid[x][y][z] = grid[x + 1][y][z];
-                        grid[x + 1][y][z] = LOW;
-                    } else {
-                        grid[x + 1][y][z] = grid[x][y][z];
-                        grid[x][y][z] = LOW;
-                    }
-                }
-            }
+	grid_clear();
+
+	for (int n = 0; n < 3; n++) {
+        auto f = (void (*[])(int, int)){grid_setX, grid_setY, grid_setZ}[n];
+		f(0, HIGH);
+		delay(200);
+		for (int m = 1; m < 6; m++) {
+            f(m - 1, LOW);
+			f(m, HIGH);
+			delay(200);
+		}
+		for (int m = 5; m > 0; m--) {
+            f(m, LOW);
+            f(m - 1, HIGH);
+            delay(200);
         }
-        clear_grid();
-    }
+        f(0, LOW);
+		delay(1000);
+	}
+
+	grid_clear();
 }
