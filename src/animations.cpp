@@ -76,21 +76,22 @@ void firework() {
         int centerY = rand() % 6;
         int centerZ = rand() % 6;
 
-        grid[centerX][centerY][0] = HIGH;  // liga um led aleatorio da camada z=0
+        //grid_set(centerX, centerY, 0, HIGH);  // liga um led aleatorio da camada z=0~
+        grid_set(centerX, centerY, 0, HIGH);
 
         int z;
         for (int x = 0; x < 6; x++) {
             for (int y = 0; y < 6; y++) {
                 for (z = 0; z < centerZ; z++) {
-                    grid[x][y][z + 1] = grid[x][y][z];  // camada de cima = a de baixo
-                    grid[x][y][z] = LOW;                // camada de baixo= low next
+                    grid_set(x, y, z + 1, grid_get(x, y, z));  // camada de cima = a de baixo
+                    grid_set(x, y, z, LOW);                // camada de baixo= low next
                 }
             }
         }
         if (z == centerZ)  // camada do centro da explosao
         {
             for (radius = 1; radius < 4; radius++) {
-                clear_grid();
+                grid_clear();
                 for (int x = 0; x < 6; x++) {
                     for (int y = 0; y < 6; y++) {
                         for (z = 0; z < 6; z++) {
@@ -101,13 +102,13 @@ void firework() {
                             {
                                 switch (radius) {
                                     case 1:
-                                        grid[x][y][z] = HIGH;
+                                        grid_set(x, y, z, HIGH);
                                         break;
                                     case 2:
-                                        grid[x][y][z] = rand() % 100 < 50;
+                                        grid_set(x, y, z, rand() % 100 < 50);
                                         break;
                                     case 3:
-                                        grid[x][y][z] = rand() % 100 < 10;
+                                        grid_set(x, y, z, rand() % 100 < 10);
                                         break;
                                 }
                             }
@@ -139,6 +140,7 @@ void firework2() {
         return;
     }
     last = millis();
+}
 
 void initial() {
     TickType_t xLastWakeTime = xTaskGetTickCount();
