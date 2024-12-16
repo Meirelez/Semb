@@ -14,13 +14,13 @@ void cube() {
 
     clear_grid();
 
-    size += d * 1;
-    if (size == 3)
-        d = -1;
-    if (size == 0)
-        d = 1;
-
     for (;;) {
+        size += d * 1;
+        if (size == 3)
+            d = -1;
+        if (size == 0)
+            d = 1;
+
         for (int x = 0; x < 6; x++) {
             for (int y = 0; y < 6; y++) {
                 for (int z = 0; z < 6; z++) {

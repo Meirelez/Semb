@@ -5,8 +5,8 @@
 
 #define scl 5
 #define sda 4
-#define clk 14
-#define init 12
+#define clk 18
+#define init 19
 
 #define MCP_ADDRESS(x) ((int[]){0x24, 0x26, 0x27}[x])
 #define MCP(x, y) ((int[]){0, 0, 1, 1, 2, 2}[x])
@@ -29,6 +29,7 @@ void setup() {
     Wire.setClock(400000);
     Serial.begin(115200);
 
+retry:
     bool err = false;
     for (int i = 0; i < 3; i++) {
         if (mcp[i].begin_I2C(MCP_ADDRESS(i)))
@@ -38,9 +39,10 @@ void setup() {
             Serial.printf("error: mcp %d\n", i);
         }
     }
-    if (err)
-        for (;;)
-            ;
+    if (err) {
+      delay(5000);
+      goto retry;
+    }
 
     mcp_pinmode();
     pinMode(clk, OUTPUT);
@@ -51,12 +53,13 @@ void setup() {
 
     hc_writeb(0);
     hc_writeb(0);
-}
 
-void loop() {
     xTaskCreate(inputs, "inputs", 10000, NULL, 1, NULL);
     xTaskCreate(outputs, "outputs", 10000, NULL, 2, NULL);
     xTaskCreate(calc, "calc", 10000, NULL, 3, NULL);
+}
+
+void loop() {
 }
 
 void mcp_pinmode() {
@@ -171,6 +174,6 @@ void clear_grid() {
 }
 
 void calc(void *args) {
-    cube();
-    //rain();
+    //cube();
+    rain();
 }
