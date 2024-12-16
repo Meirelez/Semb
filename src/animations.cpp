@@ -48,7 +48,7 @@ void rain() {
     BaseType_t xWasDelayed;
 
     grid_clear();
-	grid_setZ(5, HIGH);
+    grid_setZ(5, HIGH);
 
     for (;;) {
         for (int x = 0; x < 6; x++)
@@ -59,6 +59,86 @@ void rain() {
         xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
 }
+
+void firework() {
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    const TickType_t xFrequency = pdMS_TO_TICKS(200);
+    BaseType_t xWasDelayed;
+
+    int state = LOW;
+    int radius = 1;
+    int dx, dy, dz;
+
+    clear_grid();
+
+    for (;;) {
+        int centerX = rand() % 6;
+        int centerY = rand() % 6;
+        int centerZ = rand() % 6;
+
+        grid[centerX][centerY][0] = HIGH;  // liga um led aleatorio da camada z=0
+
+        int z;
+        for (int x = 0; x < 6; x++) {
+            for (int y = 0; y < 6; y++) {
+                for (z = 0; z < centerZ; z++) {
+                    grid[x][y][z + 1] = grid[x][y][z];  // camada de cima = a de baixo
+                    grid[x][y][z] = LOW;                // camada de baixo= low next
+                }
+            }
+        }
+        if (z == centerZ)  // camada do centro da explosao
+        {
+            for (radius = 1; radius < 4; radius++) {
+                clear_grid();
+                for (int x = 0; x < 6; x++) {
+                    for (int y = 0; y < 6; y++) {
+                        for (z = 0; z < 6; z++) {
+                            dx = x - centerX;
+                            dy = y - centerY;
+                            dz = z - centerZ;
+                            if ((dx * dx + dy * dy + dz * dz) <= radius * radius)  //(x-x0)^2+(y-y0)^2+(z-z0)^2=raio^2 eq da esfera deveria adicionar alguma aleatoreiedade em roda da explosao?
+                            {
+                                switch (radius) {
+                                    case 1:
+                                        grid[x][y][z] = HIGH;
+                                        break;
+                                    case 2:
+                                        grid[x][y][z] = rand() % 100 < 50;
+                                        break;
+                                    case 3:
+                                        grid[x][y][z] = rand() % 100 < 10;
+                                        break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
+    }
+}
+
+void firework2() {
+    static unsigned long last = 0;
+    static int state = LOW;
+    static int centerX = 0, centerY = 0, centerZ = 0;
+    static int step = 0;           // Tracks the expansion step
+    static int directions[6][3] = {// Predefined directions for palm trails
+                                   {1, 0, 1},
+                                   {-1, 0, 1},
+                                   {1, 1, 1},
+                                   {-1, -1, 1},
+                                   {0, 1, 1},
+                                   {0, -1, 1}};
+    static int trail_lengths[6];  // Randomized trail lengths for each direction
+
+    if (millis() - last < 200) {  // Wait 0.2s since last run
+        return;
+    }
+    last = millis();
 
 void initial() {
     TickType_t xLastWakeTime = xTaskGetTickCount();

@@ -29,6 +29,7 @@ void setup() {
     Wire.setClock(400000);
     Serial.begin(115200);
 
+retry:
     bool err = false;
     for (int i = 0; i < 3; i++) {
         if (mcp[i].begin_I2C(MCP_ADDRESS(i)))
@@ -38,9 +39,10 @@ void setup() {
             Serial.printf("error: mcp %d\n", i);
         }
     }
-    if (err)
-        for (;;)
-            ;
+    if (err) {
+      delay(5000);
+      goto retry;
+    }
 
     mcp_pinmode();
     pinMode(clk, OUTPUT);
@@ -58,7 +60,7 @@ void setup() {
 }
 
 void loop() {
-    
+
 }
 
 void mcp_pinmode() {
