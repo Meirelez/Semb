@@ -64,10 +64,10 @@ void loop() {
 
 void mcp_pinmode() {
     for (int i = 0; i < 3; i++) {
-        mcp[i].pinMode(0, INPUT);
-        mcp[i].pinMode(1, INPUT);
-        mcp[i].pinMode(14, INPUT);
-        mcp[i].pinMode(15, INPUT);
+        mcp[i].pinMode(0, INPUT_PULLUP);
+        mcp[i].pinMode(1, INPUT_PULLUP);
+        mcp[i].pinMode(14, INPUT_PULLUP);
+        mcp[i].pinMode(15, INPUT_PULLUP);
 
         mcp[i].pinMode(2, OUTPUT);
         mcp[i].pinMode(3, OUTPUT);
@@ -133,10 +133,10 @@ void inputs(void *args) {
     for (;;) {
         for (int i = 0; i < 3; i++) {
             uint16_t b = mcp[i].readGPIOAB();
-            buttons[i][0] = b & (0x01 << 0);
-            buttons[i][1] = b & (0x01 << 1);
-            buttons[i][2] = b & (0x01 << 14);
-            buttons[i][3] = b & (0x01 << 15);
+            buttons[i][0] = (b & (0x01 << 0))>>0;
+            buttons[i][1] = (b & (0x01 << 1))>>1;
+            buttons[i][2] = (b & (0x01 << 14))>>14;
+            buttons[i][3] = (b & (0x01 << 15))>>15;
         }
         xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
