@@ -14,7 +14,10 @@
 #define MCP_PIN(x, y) (y + ((x % 2 == 0) * 6) + 2)
 
 Adafruit_MCP23X17 mcp[3];
-int buttons[3][4];
+int buttons[3][4] = {0};
+int buttons_prev[3][4] = {0};
+int buttons_press[3][4] = {0};
+int buttons_release[3][4] = {0};
 
 void mcp_pinmode();
 void hc_writeb(uint8_t b);
@@ -118,6 +121,16 @@ void inputs(void *args) {
             buttons[i][1] = (b & (0x01 << 1))>>1;
             buttons[i][2] = (b & (0x01 << 14))>>14;
             buttons[i][3] = (b & (0x01 << 15))>>15;
+            for (int j = 0; j < 4; j++) {
+                buttons_press[i][j] = 0;
+                buttons_release[i][j] = 0;
+                if (buttons[i][j] != 0 && buttons_prev[i][j] == 0)
+                    buttons_press[i][j] = 1;
+                if (buttons[i][j] == 0 && buttons_prev[i][j] != 0) {
+                    buttons_release[i][j] = 1;
+                }
+                buttons_prev[i][j] = buttons[i][j];
+            }
         }
         xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
