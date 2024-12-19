@@ -3,7 +3,7 @@
 #include <string.h>
 
 #define GRID_SIZE 6
-static_assert(GRID_SIZE <= 8);
+static_assert(GRID_SIZE <= 8, "Grid size must not be greather than 8");
 
 volatile static uint8_t grid[GRID_SIZE * GRID_SIZE];  // z 0->size:  y0 x:0b76543210   y1 x:0b76543210   y2 x:0b76543210   y3 x:0b76543210   y4 x:0b76543210   y5 x:0b76543210
 
