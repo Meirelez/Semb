@@ -31,7 +31,7 @@ int grid_get(int x, int y, int z) {
 }
 
 uint8_t grid_getZY(int z, int y) {
-    return grid[z * GRID_SIZE + y];
+    return grid[z * GRID_SIZE + y] & ((1<<GRID_SIZE)-1);
 }
 
 void grid_set(int x, int y, int z, int v) {
