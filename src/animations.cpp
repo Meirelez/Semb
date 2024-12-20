@@ -2,6 +2,7 @@
 
 #include "animations.h"
 #include "grid.h"
+#include "font.h"
 
 void cube() {
     int size = 0;
@@ -69,7 +70,7 @@ void firework() {
     int radius = 1;
     int dx, dy, dz;
 
-    clear_grid();
+    grid_clear();
 
     for (;;) {
         int centerX = rand() % 6;
@@ -168,4 +169,42 @@ void initial() {
 	}
 
 	grid_clear();
+}
+
+void print(char *msg) {
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    const TickType_t xFrequency = pdMS_TO_TICKS(100);
+    BaseType_t xWasDelayed;
+
+    grid_clear();
+    if (!msg || strlen(msg) < 1)
+        return;
+
+    for (int y = 2; y < 6; y++)
+        for (int z = 0; z < 6; z++)
+            grid_set(0, y, z, character(msg[0], y, z));
+
+    for (int c = 4; c < 4*strlen(msg); c++) {
+        for (int y = 0; y < 6; y++)
+            for (int z = 0; z < 6; z++)
+                grid_set(0, y, z, y != 5 ? grid_get(0, y+1, z) : character(msg[c/4], c%4, z));
+
+        xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
+    }
+
+    grid_clear();
+}
+
+void print(int c) {
+    for (int z = 0; z < 6; z++) {
+        uint8_t p = font_PGM[6*(c-0x20) +5 -z];
+        for (int y = 2; y < 6; y++) {
+            grid_set(0, y, z, (p&(1<<(4-y-1))) >> (4-y-1));
+        }
+    }
+}
+
+static int character(int c, int w, int h) {
+    uint8_t r = font_PGM[6*(c-0x20) +5 -h];
+    return (r & (1<<(4-w-1))) >> (4-w-1);
 }

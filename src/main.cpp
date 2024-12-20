@@ -65,10 +65,11 @@ void outputs(void *args) {
 
 
 void calc(void *args) {
-    for(;;) {
-        initial();
-        delay(2000);
-    }
+    // for(;;) {
+    //     initial();
+    //     delay(2000);
+    // }
+    snake();
     //cube();
     //rain();
 }
