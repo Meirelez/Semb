@@ -5,10 +5,6 @@
 #include "mcp.h"
 #include "hc.h"
 
-#define MCP_ADDRESS(x) ((int[]){0x24, 0x26, 0x27}[x])
-#define MCP(x, y) ((int[]){0, 0, 1, 1, 2, 2}[y])
-#define MCP_PIN(x, y) (x + ((y % 2 == 0) * 6) + 2)
-
 void inputs(void *);
 void calc(void *);
 void outputs(void *);

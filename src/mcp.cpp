@@ -1,8 +1,8 @@
 #include "mcp.h"
 
 #define MCP_ADDRESS(x) ((int[]){0x24, 0x26, 0x27}[x])
-#define MCP(x, y) ((int[]){0, 0, 1, 1, 2, 2}[x])
-#define MCP_PIN(x, y) (y + ((x % 2 == 0) * 6) + 2)
+#define MCP_PIN(x, y) (x + ((y % 2 == 0) * 6) + 2)
+#define MCP(x, y) ((int[]){0, 0, 1, 1, 2, 2}[y])
 
 Adafruit_MCP23X17 mcp[MCP_N];
 int buttons[MCP_N][4];
