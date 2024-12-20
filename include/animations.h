@@ -4,4 +4,4 @@ void cube();
 void rain();
 void initial();
 
-void clear_grid();
+void snake();

@@ -122,7 +122,7 @@ void inputs(void *args) {
             buttons[i][2] = (b & (0x01 << 14))>>14;
             buttons[i][3] = (b & (0x01 << 15))>>15;
             for (int j = 0; j < 4; j++) {
-                buttons_press[i][j] = 0;
+                //buttons_press[i][j] = 0;
                 buttons_release[i][j] = 0;
                 if (buttons[i][j] != 0 && buttons_prev[i][j] == 0)
                     buttons_press[i][j] = 1;
@@ -174,10 +174,11 @@ void outputs(void *args) {
 
 
 void calc(void *args) {
-  for(;;) {
-    initial();
-    delay(2000);
-  }
+  //for(;;) {
+    // initial();
+    // delay(2000);
+  //}
+    snake();
     //cube();
     //rain();
 }
