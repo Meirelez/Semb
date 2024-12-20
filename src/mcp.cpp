@@ -5,7 +5,10 @@
 #define MCP(x, y) ((int[]){0, 0, 1, 1, 2, 2}[y])
 
 Adafruit_MCP23X17 mcp[MCP_N];
-int buttons[MCP_N][4];
+int buttons[MCP_N][4] = {0};
+int buttons_prev[MCP_N][4] = {0};
+int buttons_press[MCP_N][4] = {0};
+int buttons_release[MCP_N][4] = {0};
 
 static TwoWire mcp_wire = TwoWire(0);
 
@@ -45,6 +48,16 @@ void mcp_readbuttons() {
         buttons[i][1] = (b & (1 << 1))>>1;
         buttons[i][2] = (b & (1 << 14))>>14;
         buttons[i][3] = (b & (1 << 15))>>15;
+        for (int j = 0; j < 4; j++) {
+            //buttons_press[i][j] = 0;
+            buttons_release[i][j] = 0;
+            if (buttons[i][j] != 0 && buttons_prev[i][j] == 0)
+                buttons_press[i][j] = 1;
+            if (buttons[i][j] == 0 && buttons_prev[i][j] != 0) {
+                buttons_release[i][j] = 1;
+            }
+            buttons_prev[i][j] = buttons[i][j];
+        }
     }
 }
 
