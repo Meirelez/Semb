@@ -238,5 +238,14 @@ void cube_fixed_vertice()
         }
       }
     }
+    size += d * 1;
+
+    if (size == 0)
+    {
+      d = -1;
+      nvertice = (nvertice + 1) % 8;
+      size = 5;
+    }
+    xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
   }
 }
