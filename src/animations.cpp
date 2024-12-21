@@ -194,9 +194,9 @@ void initial()
 }
 void cube_fixed_vertice()
 {
-  int size = 5;
+  int size = 0;
   int nvertice = 0;
-  int d = -1;
+  int d = 1;
   int vertices[8][3] = {
       {0, 0, 0},
       {5, 0, 0},
@@ -240,12 +240,16 @@ void cube_fixed_vertice()
     }
     size += d * 1;
 
-    if (size == 0)
+    if (size == 5)
     {
       d = -1;
       nvertice = (nvertice + 1) % 8;
-      size = 5;
     }
+    if (size == 0)
+    {
+      d = 1;
+    }
+
     xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
   }
 }
