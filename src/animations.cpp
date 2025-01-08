@@ -291,12 +291,11 @@ void cube_fixed_vertice()
                     if (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE && z >= 0 && z < GRID_SIZE)
                     {
                         // Determine if the current point is on the edges of the cube
-                        int arestax = (x == vx - size || x == vx + size) ? 1 : 0;
-                        int arestay = (y == vy - size || y == vy + size) ? 1 : 0;
-                        int arestaz = (z == vz - size || z == vz + size) ? 1 : 0;
-
-                        // Light up edges of the cube
-                        if (arestax + arestay + arestaz >= 2)
+                        if (
+                            ((x == vx - size || x == vx + size) && (y == vy - size || y == vy + size)) || // Edge along Z
+                            ((x == vx - size || x == vx + size) && (z == vz - size || z == vz + size)) || // Edge along Y
+                            ((y == vy - size || y == vy + size) && (z == vz - size || z == vz + size))    // Edge along X
+                        )
                         {
                             grid_set(x, y, z, HIGH);
                         }
