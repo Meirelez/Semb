@@ -192,6 +192,7 @@ void initial()
 
   grid_clear();
 }
+
 void cube_fixed_vertice()
 {
     int size = 0;        // Current size of the cube
@@ -220,25 +221,21 @@ void cube_fixed_vertice()
         // Clear the grid for the new frame
         grid_clear();
 
-        // Render the cube relative to the fixed vertex
-        for (int x = vx - size; x <= vx + size; x++)
+        for (int x = vx; x <= vx + size && x < GRID_SIZE; x++)
         {
-            for (int y = vy - size; y <= vy + size; y++)
+            for (int y = vy; y <= vy + size && y < GRID_SIZE; y++)
             {
-                for (int z = vz - size; z <= vz + size; z++)
+                for (int z = vz; z <= vz + size && z < GRID_SIZE; z++)
                 {
-                    // Check if the coordinates are within grid bounds
-                    if (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE && z >= 0 && z < GRID_SIZE)
+                    // Check if the current point is on an edge
+                    int arestax = (x == vx || x == vx + size);
+                    int arestay = (y == vy || y == vy + size);
+                    int arestaz = (z == vz || z == vz + size);
+
+                    // A point is on an edge if at least two of (arestax, arestay, arestaz) are true
+                    if (arestax + arestay + arestaz >= 2)
                     {
-                        // Determine if the current point is on the edges of the cube
-                        if (
-                            ((x == vx - size || x == vx + size) && (y == vy - size || y == vy + size)) || // Edge along Z
-                            ((x == vx - size || x == vx + size) && (z == vz - size || z == vz + size)) || // Edge along Y
-                            ((y == vy - size || y == vy + size) && (z == vz - size || z == vz + size))    // Edge along X
-                        )
-                        {
-                            grid_set(x, y, z, HIGH);
-                        }
+                        grid_set(x, y, z, HIGH);
                     }
                 }
             }
@@ -262,73 +259,6 @@ void cube_fixed_vertice()
         xTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
 }
-void cube_fixed_vertice2()
-{
-    int size = 0;        // Current size of the cube
-    int nvertice = 0;    // Current vertex index
-    int d = 1;           // Direction of size change (1 = expanding, -1 = shrinking)
 
-    // Define the 8 vertices of the cube
-    int vertices[8][3] = {
-        {0, 0, 0}, {5, 0, 0}, {0, 5, 0}, {0, 0, 5},
-        {5, 5, 0}, {5, 0, 5}, {0, 5, 5}, {5, 5, 5}};
-
-    // Initialize timing variables for FreeRTOS
-    TickType_t xLastWakeTime = xTaskGetTickCount();
-    const TickType_t xFrequency = pdMS_TO_TICKS(200); // Delay between frames
-
-    // Clear the grid initially
-    grid_clear();
-
-    for (;;)
-    {
-        // Get the current vertex coordinates
-        int vx = vertices[nvertice][0];
-        int vy = vertices[nvertice][1];
-        int vz = vertices[nvertice][2];
-
-        // Clear the grid for the new frame
-        grid_clear();
-
-        // Render the cube edges relative to the fixed vertex
-        for (int i = 0; i <= size; i++)
-        {
-            // Edges parallel to X-axis
-            grid_set(vx + i, vy, vz, HIGH);
-            grid_set(vx + i, vy + size, vz, HIGH);
-            grid_set(vx + i, vy, vz + size, HIGH);
-            grid_set(vx + i, vy + size, vz + size, HIGH);
-
-            // Edges parallel to Y-axis
-            grid_set(vx, vy + i, vz, HIGH);
-            grid_set(vx + size, vy + i, vz, HIGH);
-            grid_set(vx, vy + i, vz + size, HIGH);
-            grid_set(vx + size, vy + i, vz + size, HIGH);
-
-            // Edges parallel to Z-axis
-            grid_set(vx, vy, vz + i, HIGH);
-            grid_set(vx + size, vy, vz + i, HIGH);
-            grid_set(vx, vy + size, vz + i, HIGH);
-            grid_set(vx + size, vy + size, vz + i, HIGH);
-        }
-
-        // Update the cube size
-        size += d;
-
-        // Handle size limits
-        if (size == 5)
-        {
-            d = -1; // Start shrinking
-        }
-        else if (size == 0)
-        {
-            d = 1; // Start expanding
-            nvertice = (nvertice + 1) % 8; // Move to the next vertex
-        }
-
-        // Delay until the next frame
-        xTaskDelayUntil(&xLastWakeTime, xFrequency);
-    }
-}
 
 }
