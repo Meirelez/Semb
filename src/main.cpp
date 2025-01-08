@@ -113,9 +113,12 @@ void inputs(void *args) {
     TickType_t xLastWakeTime = xTaskGetTickCount();
     const TickType_t xFrequency = pdMS_TO_TICKS(50);
     BaseType_t xWasDelayed;
-
+    unsigned long prev = 0, average=0;
+    int n = 500, cont = 0, stop =0, max =0, min=1000000;
     for (;;) {
+        prev = micros();
         for (int i = 0; i < 3; i++) {
+
             uint16_t b = mcp[i].readGPIOAB();
             buttons[i][0] = (b & (0x01 << 0))>>0;
             buttons[i][1] = (b & (0x01 << 1))>>1;
@@ -132,28 +135,69 @@ void inputs(void *args) {
                 buttons_prev[i][j] = buttons[i][j];
             }
         }
+        unsigned long elapsed = micros() - prev;
+        if(cont < n){
+        average = (average*cont + elapsed)/(cont+1);
+        cont++;
+        if(elapsed > max){
+            max = elapsed;
+        }
+        if(elapsed < min){
+            min = elapsed;
+        }
+        }
+        else{
+            if(stop==0){
+            Serial.printf("Input exec time: %lu,max: %d, min: %d\n",average,max,min);
+            stop = 1;
+            }
+        }
         xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
+        
     }
 }
 
 void outputs(void *args) {
+    int n = 500, cont = 0, stop =0, max =0, min=1000000;
     TickType_t xLastWakeTime = xTaskGetTickCount();
     const TickType_t xFrequency = pdMS_TO_TICKS(1);
     BaseType_t xWasDelayed;
+    unsigned long prev = micros(), average=0;
 
-    /* for (;;) {
+    for (;;) {
         for (int z = 0; z < 6; z++) {
+            unsigned long elapsed = micros() - prev;
+        if(cont < n){
+        average = (average*cont + elapsed)/(cont+1);
+        cont++;
+        if(elapsed > max){
+            max = elapsed;
+
+        }
+        if(elapsed < min){
+            min = elapsed;
+        }
+        }
+        else{
+            if(stop==0){
+            Serial.printf("Output exec time: %lu, max: %d, min: %d\n",average,max,min);
+
+            stop = 1;
+
+            }
+        }
             xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
+            prev = micros();
             hc_write(LOW);
             for (int i = 0; i < 3; i++) {
-                mcp[i].writeGPIOAB(~((uint16_t)grid_getZY(z, 2 * i) << 8 | (uint16_t)grid_getZY(z, 2 * i + 1)));
-                //Serial.printf("mcp %d: %x\n", i, (uint16_t)grid_getZY(z, 2 * i) << 8 | (uint16_t)grid_getZY(z, 2 * i + 1));
+                mcp[i].writeGPIOAB(~((uint16_t)grid_getZY(z, 2 * i) << 8 | (uint16_t)grid_getZY(z, 2 * i + 1)<<2));
             }
             hc_write(z != 0 ? LOW : HIGH);
         }
-    } */
+    }
 
-    int m[3] = {0};
+    /*int m[3] = {0};
+    unsigned long prev = micros(), average=0;
     for (;;) {
         for (int z = 0; z < 6; z++) {
             m[0] = m[1] = m[2] = 0;
@@ -162,7 +206,28 @@ void outputs(void *args) {
                     m[MCP(x, y)] |= (grid_get(x, y, z)&1) << MCP_PIN(x, y);
                 }
             }
-            xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
+        unsigned long elapsed = micros() - prev;
+        if(cont < n){
+        average = (average*cont + elapsed)/(cont+1);
+        cont++;
+        if(elapsed > max){
+            max = elapsed;
+
+        }
+        if(elapsed < min){
+            min = elapsed;
+        }
+        }
+        else{
+            if(stop==0){
+            Serial.printf("Output exec time: %lu, max: %d, min: %d\n",average,max,min);
+
+            stop = 1;
+
+            }
+        }
+        xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
+        prev = micros();
             hc_write(LOW);
             for (int i = 0; i < 3; i++)
                 mcp[i].writeGPIOAB(~m[i]);
@@ -170,6 +235,7 @@ void outputs(void *args) {
             hc_write(z != 0 ? LOW : HIGH);
         }
     }
+    */
 }
 
 
@@ -178,7 +244,11 @@ void calc(void *args) {
     // initial();
     // delay(2000);
   //}
-    snake();
+    //snake();
     //cube();
-    //rain();
+    initial();
+    rain();
+    cube();
+    snake();
+
 }

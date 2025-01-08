@@ -12,7 +12,8 @@ void cube() {
     BaseType_t xWasDelayed;
 
     grid_clear();
-
+    unsigned long prev = micros(), average=0;
+    int n = 500, cont = 0, stop =0, max =0, min=1000000;
     for (;;) {
         size += d * 1;
         if (size == 3)
@@ -38,29 +39,71 @@ void cube() {
                 }
             }
         }
+         unsigned long elapsed = micros() - prev;
+        if(cont < n){
+        average = (average*cont + elapsed)/(cont+1);
+        cont++;
+        if(elapsed > max){
+            max = elapsed;
+        }
+        if(elapsed < min){
+            min = elapsed;
+        }
+        }
+        else{
+            if(stop==0){
+            Serial.printf("Cube exec time: %lu,max: %d, min: %d\n",average,max,min);
+            return;
+            }
+        }
         xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
+        prev = micros();
     }
 }
 
 void rain() {
+    unsigned long prev = micros(), average=0;
+    int n = 500, cont = 0, stop =0, max =0, min=1000000;
     TickType_t xLastWakeTime = xTaskGetTickCount();
     const TickType_t xFrequency = pdMS_TO_TICKS(200);
     BaseType_t xWasDelayed;
 
     grid_clear();
-    grid_setZ(5, HIGH);
+   // grid_setZ(5, HIGH);
 
     for (;;) {
         for (int x = 0; x < 6; x++)
             for (int y = 0; y < 6; y++)
-                for (int z = 0; z < 5; z++)
-                    grid_set(x, y, z, z != 4 ? grid_get(x, y, z + 1) : rand() % 100 < 10);  // 10% probability of turning on
+                for (int z = 0; z < 6; z++)
+                    grid_set(x, y, z, z != 5 ? grid_get(x, y, z + 1) : rand() % 100 < 10);  // 10% probability of turning on
+        
 
+         unsigned long elapsed = micros() - prev;
+        if(cont < n){
+        average = (average*cont + elapsed)/(cont+1);
+        cont++;
+        if(elapsed > max){
+            max = elapsed;
+        }
+        if(elapsed < min){
+            min = elapsed;
+        }
+        }
+        else{
+            if(stop==0){
+            Serial.printf("Rain exec time: %lu,max: %d, min: %d\n",average,max,min);
+            stop = 1;
+            return;
+            }
+        }
         xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
+        prev = micros();
     }
 }
 
 void firework() {
+    unsigned long prev = micros(), average=0;
+    int n = 500, cont = 0, stop =0, max =0, min=1000000;
     TickType_t xLastWakeTime = xTaskGetTickCount();
     const TickType_t xFrequency = pdMS_TO_TICKS(200);
     BaseType_t xWasDelayed;
@@ -118,11 +161,32 @@ void firework() {
             }
         }
 
+        unsigned long elapsed = micros() - prev;
+        if(cont < n){
+        average = (average*cont + elapsed)/(cont+1);
+        cont++;
+        if(elapsed > max){
+            max = elapsed;
+        }
+        if(elapsed < min){
+            min = elapsed;
+        }
+        }
+        else{
+            if(stop==0){
+            Serial.printf("Firework exec time: %lu,max: %d, min: %d\n",average,max,min);
+            stop = 1;
+            return;
+            }
+        }
         xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
+        prev = micros();
     }
 }
 
 void firework2() {
+    unsigned long prev = micros(), average=0;
+    int n = 500, cont = 0, stop =0;
     static unsigned long last = 0;
     static int state = LOW;
     static int centerX = 0, centerY = 0, centerZ = 0;
@@ -143,6 +207,8 @@ void firework2() {
 }
 
 void initial() {
+    unsigned long prev = micros(), average=0;
+    int n = 500, cont = 0, stop =0;
     TickType_t xLastWakeTime = xTaskGetTickCount();
     const TickType_t xFrequency = pdMS_TO_TICKS(100);
     BaseType_t xWasDelayed;

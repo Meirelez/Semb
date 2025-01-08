@@ -17,6 +17,8 @@ static void snake_move(std::vector<struct coords> &snake, struct coords &dir);
 static void snake_draw(std::vector<struct coords> &snake, struct coords food);
 
 void snake() {
+     unsigned long prev = 0, average=0;
+    int n = 500, cont = 0, stop =0, max =0, min=1000000;
     TickType_t xLastWakeTime = xTaskGetTickCount();
     const TickType_t xFrequency = pdMS_TO_TICKS(400);
     BaseType_t xWasDelayed;
@@ -31,6 +33,7 @@ void snake() {
     struct coords food = {rand() % 6, rand() % 6, rand() % 6};
 
     for(;;) {
+        prev = micros();
         grid_clear();
 
         snake_move(snake, dir);
@@ -43,7 +46,25 @@ void snake() {
 
         snake_draw(snake, food);
 
+        unsigned long elapsed = micros() - prev;
+        if(cont < n){
+        average = (average*cont + elapsed)/(cont+1);
+        cont++;
+        if(elapsed > max){
+            max = elapsed;
+        }
+        if(elapsed < min){
+            min = elapsed;
+        }
+        }
+        else{
+            if(stop==0){
+            Serial.printf("Snake exec time: %lu,max: %d, min: %d\n",average,max,min);
+            stop = 1;
+            }
+        }
         xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
+        
     }
 }
 
