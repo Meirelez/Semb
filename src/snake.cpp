@@ -35,6 +35,8 @@ void snake() {
 
         snake_move(snake, dir);
 
+        if(buttons_press[1][0]) return;
+
         if (snake[0].x == food.x && snake[0].y == food.y && snake[0].z == food.z) {
             size++;
             food = {rand() % 6, rand() % 6, rand() % 6};

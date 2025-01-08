@@ -3,6 +3,11 @@
 #include "animations.h"
 #include "grid.h"
 
+extern int buttons[3][4];
+extern int buttons_prev[3][4];
+extern int buttons_press[3][4];
+extern int buttons_release[3][4];
+
 void cube() {
     int size = 0;
     int d = 1;
@@ -19,6 +24,8 @@ void cube() {
             d = -1;
         if (size == 0)
             d = 1;
+        
+        if(buttons_press[1][0]) return;
 
         for (int x = 0; x < 6; x++) {
             for (int y = 0; y < 6; y++) {
@@ -51,6 +58,7 @@ void rain() {
     grid_setZ(5, HIGH);
 
     for (;;) {
+        if(buttons_press[1][0]) return;
         for (int x = 0; x < 6; x++)
             for (int y = 0; y < 6; y++)
                 for (int z = 0; z < 5; z++)
@@ -72,6 +80,7 @@ void firework() {
     grid_clear();
 
     for (;;) {
+        if(buttons_press[1][0]) return;
         int centerX = rand() % 6;
         int centerY = rand() % 6;
         int centerZ = rand() % 6;

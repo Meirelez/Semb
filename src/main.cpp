@@ -174,11 +174,20 @@ void outputs(void *args) {
 
 
 void calc(void *args) {
-  //for(;;) {
-    // initial();
-    // delay(2000);
-  //}
-    snake();
-    //cube();
-    //rain();
+    void (*animations[])() = {rain, cube, snake};
+
+    auto fp = initial;
+    for(int i = 0;;) {
+        for (int j = 0; j < 3; j++) {
+            memset(buttons_prev[j], 0, 4*sizeof(int));
+            memset(buttons_press[j], 0, 4*sizeof(int));
+            memset(buttons_release[j], 0, 4*sizeof(int));
+        }
+
+        fp();
+        if(i > 2) {
+            i = 0;
+        }
+        fp = animations[i];
+    }
 }
