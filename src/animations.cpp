@@ -194,66 +194,6 @@ void initial()
 }
 void cube_fixed_vertice()
 {
-  int size = 0;
-  int nvertice = 0;
-  int d = 1;
-  int vertices[8][3] = {
-      {0, 0, 0},
-      {5, 0, 0},
-      {0, 5, 0},
-      {0, 0, 5},
-      {5, 5, 0},
-      {5, 0, 5},
-      {0, 5, 5},
-      {5, 5, 5}};
-
-  TickType_t xLastWakeTime = xTaskGetTickCount();
-  const TickType_t xFrequency = pdMS_TO_TICKS(200);
-  BaseType_t xWasDelayed;
-
-  grid_clear();
-
-  for (;;)
-  {
-    int vx = vertices[nvertice][0];
-    int vy = vertices[nvertice][1];
-    int vz = vertices[nvertice][2];
-
-    grid_clear();
-
-    for (int x = vx; x <= vx + size && x < 6; x++)
-    {
-      for (int y = vy; y <= vy + size && y < 6; y++)
-      {
-        for (int z = vz; z <= vz + size && z < 6; z++)
-        {
-          int arestax = (x == vx || x == vx + size) ? 1 : 0;
-          int arestay = (y == vy || y == vy + size) ? 1 : 0;
-          int arestaz = (z == vz || z == vz + size) ? 1 : 0;
-
-          if (arestax + arestay + arestaz >= 2)
-          {
-            grid_set(x, y, z, HIGH);
-          }
-        }
-      }
-    }
-    size += d * 1;
-
-    if (size == 5)
-    {
-      d = -1;
-      nvertice = (nvertice + 1) % 8;
-    }
-    if (size == 0)
-    {
-      d = 1;
-    }
-
-    xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
-  }
-  void cube_fixed_vertice()
-{
     int size = 0;        // Current size of the cube
     int nvertice = 0;    // Current vertex index
     int d = 1;           // Direction of size change (1 = expanding, -1 = shrinking)
@@ -322,5 +262,6 @@ void cube_fixed_vertice()
         xTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
 }
+
 
 }
