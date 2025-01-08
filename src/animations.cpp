@@ -264,7 +264,7 @@ void cube_fixed_vertice()
     }
 }
 
-void cube_fixed_vertice3()
+void cube_fixed_vertice()
 {
     int size = 0;        // Current size of the cube
     int nvertice = 0;    // Current vertex index
@@ -300,35 +300,24 @@ void cube_fixed_vertice3()
                     // Check if the coordinates are within grid bounds
                     if (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE && z >= 0 && z < GRID_SIZE)
                     {
-                        // Check if the current point lies on any edge of the cube
-                        bool isEdge = false;
+                        // Simplified edge detection logic
+                        // A point is on an edge if exactly two of its coordinates are at their extremes
+                        int extremeCount = 0;
                         
-                        // Point is on an edge if:
-                        // 1. One coordinate is at its extreme (min or max)
-                        // 2. The other two coordinates are at their extremes OR between extremes
+                        // Check X coordinate
                         if (x == vx - size || x == vx + size)
-                        {
-                            if (y >= vy - size && y <= vy + size && 
-                                (z == vz - size || z == vz + size)) isEdge = true;
-                            if (z >= vz - size && z <= vz + size && 
-                                (y == vy - size || y == vy + size)) isEdge = true;
-                        }
+                            extremeCount++;
+                            
+                        // Check Y coordinate
                         if (y == vy - size || y == vy + size)
-                        {
-                            if (x >= vx - size && x <= vx + size && 
-                                (z == vz - size || z == vz + size)) isEdge = true;
-                            if (z >= vz - size && z <= vz + size && 
-                                (x == vx - size || x == vx + size)) isEdge = true;
-                        }
+                            extremeCount++;
+                            
+                        // Check Z coordinate
                         if (z == vz - size || z == vz + size)
-                        {
-                            if (x >= vx - size && x <= vx + size && 
-                                (y == vy - size || y == vy + size)) isEdge = true;
-                            if (y >= vy - size && y <= vy + size && 
-                                (x == vx - size || x == vx + size)) isEdge = true;
-                        }
+                            extremeCount++;
 
-                        if (isEdge)
+                        // If exactly two coordinates are at their extremes, this point is on an edge
+                        if (extremeCount == 2)
                         {
                             grid_set(x, y, z, HIGH);
                         }
