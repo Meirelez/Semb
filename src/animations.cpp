@@ -48,13 +48,13 @@ void rain() {
     BaseType_t xWasDelayed;
 
     grid_clear();
-    grid_setZ(5, HIGH);
+    //grid_setZ(5, HIGH);
 
     for (;;) {
         for (int x = 0; x < 6; x++)
             for (int y = 0; y < 6; y++)
-                for (int z = 0; z < 5; z++)
-                    grid_set(x, y, z, z != 4 ? grid_get(x, y, z + 1) : rand() % 100 < 10);  // 10% probability of turning on
+                for (int z = 0; z < 6; z++)
+                    grid_set(x, y, z, z != 5 ? grid_get(x, y, z + 1) : rand() % 100 < 10);  // 10% probability of turning on
 
         xWasDelayed = xTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
