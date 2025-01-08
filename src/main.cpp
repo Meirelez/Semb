@@ -161,10 +161,6 @@ void outputs(void *args) {
 
 
 void calc(void *args) {
-  for(;;) {
-    initial();
-    delay(2000);
-  }
-    //cube();
-    //rain();
+    //cube_fixed_vertice();
+    firework();
 }

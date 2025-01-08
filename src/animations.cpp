@@ -77,7 +77,7 @@ void firework()
   int radius = 1;
   int dx, dy, dz;
 
-  clear_grid();
+  grid_clear();
 
   for (;;)
   {
