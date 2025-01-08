@@ -3,6 +3,9 @@
 #include "animations.h"
 #include "grid.h"
 
+extern int buttons_press[3][4];
+volatile int *ret_button = &buttons_press[1][1];
+
 void cube() {
     int size = 0;
     int d = 1;
@@ -14,6 +17,7 @@ void cube() {
     grid_clear();
 
     for (;;) {
+        if (*ret_button) return;
         size += d * 1;
         if (size == 3)
             d = -1;
@@ -51,6 +55,7 @@ void rain() {
     //grid_setZ(5, HIGH);
 
     for (;;) {
+        if (*ret_button) return;
         for (int x = 0; x < 6; x++)
             for (int y = 0; y < 6; y++)
                 for (int z = 0; z < 6; z++)
@@ -72,6 +77,7 @@ void firework() {
     grid_clear();
 
     for (;;) {
+        if (*ret_button) return;
         int centerX = rand() % 6;
         int centerY = rand() % 6;
         int centerZ = rand() % 6;
@@ -168,4 +174,98 @@ void initial() {
 	}
 
 	grid_clear();
+}
+
+void cube_fixed_vertice()
+{
+    int GRID_SIZE = 6;
+    int size = 0;        // Current size of the cube
+    int nvertice = 0;    // Current vertex index
+    int d = 1;           // Direction of size change (1 = expanding, -1 = shrinking)
+    // Define the 8 vertices of the cube
+    int vertices[8][3] = {
+        {0, 0, 0}, {5, 0, 0}, {0, 5, 0}, {0, 0, 5},
+        {5, 5, 0}, {5, 0, 5}, {0, 5, 5}, {5, 5, 5}};
+    // Initialize timing variables for FreeRTOS
+    TickType_t xLastWakeTime = xTaskGetTickCount();
+    const TickType_t xFrequency = pdMS_TO_TICKS(200); // Delay between frames
+
+    // Clear the grid initially
+    grid_clear();
+
+    for (;;)
+    {
+        if (*ret_button) return;
+        // Get the current vertex coordinates
+        int vx = vertices[nvertice][0];
+        int vy = vertices[nvertice][1];
+        int vz = vertices[nvertice][2];
+
+        // Clear the grid for the new frame
+        grid_clear();
+
+        // Render the cube relative to the fixed vertex
+        for (int x = vx - size; x <= vx + size; x++)
+        {
+            for (int y = vy - size; y <= vy + size; y++)
+            {
+                for (int z = vz - size; z <= vz + size; z++)
+                {
+                    // Check if the coordinates are within grid bounds
+                    if (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE && z >= 0 && z < GRID_SIZE)
+                    {
+                        // Check if the current point lies on any edge of the cube
+                        bool isEdge = false;
+                        
+                        // Point is on an edge if:
+                        // 1. One coordinate is at its extreme (min or max)
+                        // 2. The other two coordinates are at their extremes OR between extremes
+                        if (x == vx - size || x == vx + size)
+                        {
+                            if (y >= vy - size && y <= vy + size && 
+                                (z == vz - size || z == vz + size)) isEdge = true;
+                            if (z >= vz - size && z <= vz + size && 
+                                (y == vy - size || y == vy + size)) isEdge = true;
+                        }
+                        if (y == vy - size || y == vy + size)
+                        {
+                            if (x >= vx - size && x <= vx + size && 
+                                (z == vz - size || z == vz + size)) isEdge = true;
+                            if (z >= vz - size && z <= vz + size && 
+                                (x == vx - size || x == vx + size)) isEdge = true;
+                        }
+                        if (z == vz - size || z == vz + size)
+                        {
+                            if (x >= vx - size && x <= vx + size && 
+                                (y == vy - size || y == vy + size)) isEdge = true;
+                            if (y >= vy - size && y <= vy + size && 
+                                (x == vx - size || x == vx + size)) isEdge = true;
+                        }
+
+                        if (isEdge)
+                        {
+                            grid_set(x, y, z, HIGH);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Update the cube size
+        size += d;
+
+        // Handle size limits
+        if (size == 5)
+        {
+            d = -1; // Start shrinking
+        }
+        else if (size == 0)
+        {
+            d = 1; // Start expanding
+            nvertice = (nvertice + 1) % 8; // Move to the next vertex
+        }
+
+        // Delay until the next frame
+        xTaskDelayUntil(&xLastWakeTime, xFrequency);
+    }
 }

@@ -9,11 +9,13 @@ extern int buttons_prev[3][4];
 extern int buttons_press[3][4];
 extern int buttons_release[3][4];
 
+static volatile int *ret_button = &buttons_press[1][1];
+
 struct coords {
     int x, y, z;
 };
 
-static void snake_move(std::vector<struct coords> &snake, struct coords &dir);
+static int snake_move(std::vector<struct coords> &snake, struct coords &dir);
 static void snake_draw(std::vector<struct coords> &snake, struct coords food);
 
 void snake() {
@@ -23,20 +25,27 @@ void snake() {
 
 	grid_clear();
 
-    int size = 1;
     struct coords dir = {1, 0, 0};
 
     std::vector<struct coords> snake = {{rand() % 6, rand() % 6, rand() % 6}};
 
     struct coords food = {rand() % 6, rand() % 6, rand() % 6};
 
+    int score = 1;
+
     for(;;) {
         grid_clear();
+        if (*ret_button) return;
 
-        snake_move(snake, dir);
+        if (snake_move(snake, dir)){
+            Serial.printf("Game over! Your score was %d\n", score);
+            snake_draw(snake, food);
+            delay(5000);
+            return;
+        }
 
         if (snake[0].x == food.x && snake[0].y == food.y && snake[0].z == food.z) {
-            size++;
+            score++;
             food = {rand() % 6, rand() % 6, rand() % 6};
             snake.insert(snake.end(), snake.back());
         }
@@ -47,7 +56,7 @@ void snake() {
     }
 }
 
-static void snake_move(std::vector<struct coords> &snake, struct coords &dir) {
+static int snake_move(std::vector<struct coords> &snake, struct coords &dir) {
     static int *left = &buttons_press[0][3], *right = &buttons_press[1][3], *up = &buttons_press[0][1], *down = &buttons_press[0][0], *forw = &buttons_press[2][1], *bckw = &buttons_press[2][0];
 
     struct coords head = snake[0];
@@ -92,10 +101,18 @@ static void snake_move(std::vector<struct coords> &snake, struct coords &dir) {
     if (head.z > 5) head.z = 0;
     if (head.z < 0) head.z = 5;
 
+    if (snake.size() > 1) 
+        for (const auto &e : snake) {
+            if (head.x == e.x && head.y == e.y && head.z == e.z) {
+                Serial.println("collision");
+                return -1;
+            }
+        }
 
     snake.pop_back();
 
     snake.insert(snake.begin(), head);
+    return 0;
 }
 
 static void snake_draw(std::vector<struct coords> &snake, struct coords food) {
