@@ -221,21 +221,25 @@ void cube_fixed_vertice()
         // Clear the grid for the new frame
         grid_clear();
 
-        for (int x = vx; x <= vx + size && x < GRID_SIZE; x++)
+        // Render the cube relative to the fixed vertex
+        for (int x = vx - size; x <= vx + size; x++)
         {
-            for (int y = vy; y <= vy + size && y < GRID_SIZE; y++)
+            for (int y = vy - size; y <= vy + size; y++)
             {
-                for (int z = vz; z <= vz + size && z < GRID_SIZE; z++)
+                for (int z = vz - size; z <= vz + size; z++)
                 {
-                    // Check if the current point is on an edge
-                    int arestax = (x == vx || x == vx + size);
-                    int arestay = (y == vy || y == vy + size);
-                    int arestaz = (z == vz || z == vz + size);
-
-                    // A point is on an edge if at least two of (arestax, arestay, arestaz) are true
-                    if (arestax + arestay + arestaz >= 2)
+                    // Check if the coordinates are within grid bounds
+                    if (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE && z >= 0 && z < GRID_SIZE)
                     {
-                        grid_set(x, y, z, HIGH);
+                        // Determine if the current point is on the edges of the cube
+                        if (
+                            ((x == vx - size || x == vx + size) && (y == vy - size || y == vy + size)) || // Edge along Z
+                            ((x == vx - size || x == vx + size) && (z == vz - size || z == vz + size)) || // Edge along Y
+                            ((y == vy - size || y == vy + size) && (z == vz - size || z == vz + size))    // Edge along X
+                        )
+                        {
+                            grid_set(x, y, z, HIGH);
+                        }
                     }
                 }
             }
@@ -259,6 +263,5 @@ void cube_fixed_vertice()
         xTaskDelayUntil(&xLastWakeTime, xFrequency);
     }
 }
-
 
 }
