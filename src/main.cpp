@@ -247,6 +247,7 @@ void calc(void *args) {
     //snake();
     //cube();
     initial();
+    cube_fixed_vertice();
     rain();
     cube();
     snake();
