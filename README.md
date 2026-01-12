@@ -28,5 +28,13 @@ The project was developed as part of the Embedded Systems course at the Faculty 
 - 3 × MCP23017 GPIO expanders (I2C)  
 - 2 × 74HC164 shift registers  
 - 6×6×6 LED cube  
-- Push buttons for user input  
+- Push buttons for user input
 
+
+## Demo
+
+A demonstration video of the project is available here:
+
+👉 https://www.youtube.com/watch?v=YuEzPVUi9ik
+
+---
